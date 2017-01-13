@@ -1,0 +1,299 @@
+<!--
+  #%L
+  ADOPS
+  %%
+  Copyright (C) 2012 - 2017 David Reboiro-Jato, Miguel Reboiro-Jato, Jorge Vieira, Florentino Fdez-Riverola, Cristina P. Vieira, Nuno A. Fonseca
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+<plugin start="true">
+	<uid>es.uvigo.ei.sing.adops</uid>
+	<name>ADOPS</name>
+	<version>0.5.0</version>
+	
+	<!-- lifecycle class. Used to detect when the plugin is started. The class should inherit from org.platonos.pluginengine.PluginLifecycle-->
+	<lifecycleclass>es.uvigo.ei.sing.adops.ADOPSLifecycle</lifecycleclass>
+
+	<extensions>
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.CreateProject"
+		>
+			<operation-description
+				path="1@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.createproject"
+				shortcut="1"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.LoadProject"
+		>
+			<operation-description
+				path="2@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.loadproject"
+				shortcut="3"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.CloseProject"
+		>
+			<operation-description
+				path="3@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.closeproject"
+				shortcut="5"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.DeleteProject"
+		>
+			<operation-description
+				path="4@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.deleteproject"
+				shortcut="5"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.CopyExperiment"
+		>
+			<operation-description
+				path="1@Experiment" 
+				uid="es.uvigo.ei.sing.adops.operations.copyexperiment"
+				shortcut="3"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.CreateExperiment"
+		>
+			<operation-description
+				path="1@Experiment" 
+				uid="es.uvigo.ei.sing.adops.operations.createexperiment"
+				shortcut="3"
+			/>
+		</extension>
+
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.running.ExecuteExperimentBySteps"
+		>
+			<operation-description
+				path="2@Experiment" 
+				uid="es.uvigo.ei.sing.adops.operations.runexperimentbysteps"
+				shortcut="5"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.DeleteExperiment"
+		>
+			<operation-description
+				path="4@Experiment" 
+				uid="es.uvigo.ei.sing.adops.operations.deleteexperiment"
+				shortcut="6"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.CleanExperiment"
+		>
+			<operation-description
+				path="4@Experiment" 
+				uid="es.uvigo.ei.sing.adops.operations.cleanexperiment"
+				shortcut="6"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.CreateBatchProject"
+		>
+			<operation-description
+				path="1@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.createbatchproject"
+				shortcut="2"
+			/>
+		</extension>
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.LoadBatchProject"
+		>
+			<operation-description
+				path="2@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.loadbatchproject"
+				shortcut="4"
+			/>
+		</extension>
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.CloseBatchProject"
+		>
+			<operation-description
+				path="3@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.closebatchproject"
+				shortcut="5"
+			/>
+		</extension>
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.DeleteBatchProject"
+		>
+			<operation-description
+				path="4@Project" 
+				uid="es.uvigo.ei.sing.adops.operations.deletebatchproject"
+				shortcut="5"
+			/>
+		</extension>
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.ei.sing.adops.operations.running.ExecuteBatchProject"
+		>
+			<operation-description
+				path="2@Experiment" 
+				uid="es.uvigo.ei.sing.adops.operations.executebatchproject"
+				shortcut="5"
+			/>
+		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<view name="Batch Project" 
+				datatype="es.uvigo.ei.sing.adops.datatypes.BatchProject" 
+				class="es.uvigo.ei.sing.adops.views.BatchProjectView"
+			/>		
+		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<view name="Project" 
+				datatype="es.uvigo.ei.sing.adops.datatypes.Project" 
+				class="es.uvigo.ei.sing.adops.views.ProjectView"
+			/>		
+		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.createexperiment" 
+				visibility="POPUP"
+			/>
+		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.copyexperiment" 
+				visibility="POPUP"
+			/>
+		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.runexperiment" 
+				visibility="NONE"
+			/>
+		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.runexperimentbysteps" 
+				visibility="NONE"
+			/>
+		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.executebatchproject" 
+				visibility="NONE"
+			/>
+		</extension>
+
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.closebatchproject" 
+				visibility="POPUP"
+			/>
+		</extension>
+
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.deletebatchproject" 
+				visibility="POPUP"
+			/>
+		</extension>
+
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.closeproject" 
+				visibility="POPUP"
+			/>
+		</extension>
+
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.deleteproject" 
+				visibility="POPUP"
+			/>
+		</extension>
+
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.deleteexperiment" 
+				visibility="POPUP"
+			/>
+		</extension>
+
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility 
+				operation="es.uvigo.ei.sing.adops.operations.cleanexperiment" 
+				visibility="POPUP"
+			/>
+		</extension>
+
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<icon-datatype
+				datatype="es.uvigo.ei.sing.adops.datatypes.Project" 
+				icon="icons/project.png"
+			/> 
+			<icon-datatype
+				datatype="es.uvigo.ei.sing.adops.datatypes.BatchProject" 
+				icon="icons/batch-project.png"
+			/> 
+			<icon-datatype
+				datatype="es.uvigo.ei.sing.adops.datatypes.Experiment" 
+				icon="icons/experiment.png"
+			/> 
+			<icon-datatype
+				datatype="es.uvigo.ei.sing.adops.datatypes.OperationOutput" 
+				icon="icons/results.png"
+			/> 
+			<icon-datatype
+				datatype="java.io.File" 
+				icon="icons/file.png"
+			/> 
+			<icon-datatype
+				datatype="es.uvigo.ei.sing.adops.datatypes.ConstantDatatype" 
+				icon="icons/results.png"
+			/> 
+		</extension>
+	</extensions>
+</plugin>

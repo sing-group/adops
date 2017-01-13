@@ -1,0 +1,354 @@
+/*-
+ * #%L
+ * ADOPS
+ * %%
+ * Copyright (C) 2012 - 2017 David Reboiro-Jato, Miguel Reboiro-Jato, Jorge Vieira, Florentino Fdez-Riverola, Cristina P. Vieira, Nuno A. Fonseca
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+package es.uvigo.ei.sing.adops.datatypes;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+
+import es.uvigo.ei.sing.adops.FastaUtils;
+import es.uvigo.ei.sing.alter.parser.ParseException;
+import es.uvigo.ei.sing.alter.types.FastaSequence;
+import es.uvigo.ei.sing.alter.types.Sequence;
+import es.uvigo.ei.aibench.core.datatypes.annotation.Clipboard;
+import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
+import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
+
+@Datatype(structure=Structure.COMPLEX, namingMethod = "getName")
+public class ExperimentOutput extends AbstractOperationOutput {
+	private static final String FILE_OUTPUT_ALIGNMENT = "aligned.fasta";
+	private static final String FILE_OUTPUT_PROTEIN_ALIGNMENT_FASTA = "aligned.prot.fasta";
+	private static final String FILE_OUTPUT_PROTEIN_ALIGNMENT_ALN = "aligned.prot.aln";
+	private static final String FILE_OUTPUT_SCORE_ASCII = "aligned.score_ascii";
+	private static final String FILE_OUTPUT_TREE = "tree.con";
+	private static final String FILE_OUTPUT_LOG = "output.log";
+	private static final String FILE_OUTPUT_SUMMARY = "output.sum";
+	private static final String FILE_OUTPUT_PSRF = "mrbayes.log.psrf";
+	private static final String FILE_OUTPUT_CODEML = "codeml.out";
+	private static final String FILE_OUTPUT_CODEML_SUMMARY = "codeml.sum";
+	
+	private TCoffeeOutput tCoffeeOutput;
+	private MrBayesOutput mrBayesOutput;
+	private CodeMLOutput codeMLOutput;
+	
+	private boolean finished;
+	
+	private Experiment experiment;
+	
+	public ExperimentOutput(Experiment experiment) {
+		super(0);
+		
+		this.experiment = experiment;
+		
+		this.finished = false;
+		this.deleted = false;
+		
+		this.tCoffeeOutput = new TCoffeeOutput(
+			experiment.getFastaFile(), 
+			experiment.getFilesFolder(),
+			experiment.getConfiguration().getTCoffeeConfiguration().getAlignMethod()
+		);
+		this.mrBayesOutput = new MrBayesOutput(this.tCoffeeOutput.getAlignmentFile(), experiment.getFilesFolder());
+		this.codeMLOutput = new CodeMLOutput(
+		this.tCoffeeOutput.getAlignmentFile(), experiment.getFilesFolder(),0);
+
+		experiment.setResult(this);
+	}
+	
+	public String getName() {
+		return "Experiment Result";
+	}
+
+	public void setTCoffeeOutput(TCoffeeOutput tCoffeeOutput) {
+		this.tCoffeeOutput = tCoffeeOutput;
+		
+		this.setChanged();
+		this.notifyObservers();
+	}
+	
+	public void setMrBayesOutput(MrBayesOutput mrBayesOutput) {
+		this.mrBayesOutput = mrBayesOutput;
+		
+		this.setChanged();
+		this.notifyObservers();
+	}
+	
+	public void setCodeMLOutput(CodeMLOutput codeMLOutput) {
+		this.codeMLOutput = codeMLOutput;
+		
+		this.setChanged();
+		this.notifyObservers();
+	}
+
+	public void setFinished(boolean finished) {
+		this.finished = finished;
+		
+		this.setChanged();
+		this.notifyObservers();
+	}
+	
+	public boolean isFinished() {
+		return finished;
+	}
+	
+	@Clipboard(name = "Log File", order = 1)
+	public ConstantDatatype getLogFileData() {
+		if (this.getLogFile().exists()) {
+			return new ConstantDatatype("Log File", this.getLogFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "Alignment File", order = 2)
+	public ConstantDatatype getRenamedAlignedFastaFileData() {
+		if (this.getRenamedAlignedFastaFile().exists()) {
+			return new ConstantDatatype("Alignment File", this.getRenamedAlignedFastaFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "Protein Alignment Fasta File", order = 3)
+	public ConstantDatatype getRenamedAlignedProteinFastaFileData() {
+		if (this.getRenamedAlignedProteinFastaFile().exists()) {
+			return new ConstantDatatype("Protein Alignment Fasta File", this.getRenamedAlignedProteinFastaFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "Protein Alignment Aln File", order = 4)
+	public ConstantDatatype getRenamedAlignedProteinAlnFileData() {
+		if (this.getRenamedAlignedProteinAlnFile().exists()) {
+			return new ConstantDatatype("Protein Alignment Aln File", this.getRenamedAlignedProteinAlnFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "PSRF File", order = 5)
+	public ConstantDatatype getPsrfFileData() {
+		if (this.getPsrfFile().exists()) {
+			return new ConstantDatatype("PSRF File", this.getPsrfFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "MrBayes Consensus Tree", order = 6)
+	public ConstantDatatype getRenamedTreeFileData() {
+		if (this.getRenamedTreeFile().exists()) {
+			return new ConstantDatatype("MrBayes Consensus Tree", this.getRenamedTreeFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "CodeML Summary", order = 7)
+	public ConstantDatatype getCodeMLSummaryFileData() {
+		if (this.getCodeMLSummaryFile().exists()) {
+			return new ConstantDatatype("CodeML Summary", this.getCodeMLSummaryFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "CodeML Output File", order = 8)
+	public ConstantDatatype getCodeMLOutputFileData() {
+		if (this.getCodeMLOutputFile().exists()) {
+			return new ConstantDatatype("CodeML Output File", this.getCodeMLOutputFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "Summary File", order = 9)
+	public ConstantDatatype getSummaryFileData() {
+		if (this.getSummaryFile().exists()) {
+			return new ConstantDatatype("Summary File", this.getSummaryFile().getName());
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "T-Coffee Output", order = 10)
+	public ConstantDatatype getTCoffeeOutputData() {
+		if (this.getTCoffeeOutput().isComplete()) {
+			return new ConstantDatatype("T-Coffee Output", "OK");
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "MrBayes Output", order = 11)
+	public ConstantDatatype getMrBayesOutputData() {
+		if (this.getMrBayesOutput().isComplete()) {
+			return new ConstantDatatype("MrBayes Output", "OK");
+		} else {
+			return null;
+		}
+	}
+	
+	@Clipboard(name = "CodeML Output", order = 12)
+	public ConstantDatatype getCodeMLOutputData() {
+		if (this.getCodeMLOutput().isComplete()) {
+			return new ConstantDatatype("CodeML Output", "OK");
+		} else {
+			return null;
+		}
+	}
+	
+	public File getLogFile() {
+		//return this.logFile;
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_LOG);
+	}
+	
+//	@Clipboard(name = "Summary File", order=1)
+	public File getSummaryFile () {
+//		return this.summaryFile;
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_SUMMARY);
+	}
+	
+//	@Clipboard(name = "MrBayes Psrf File", order=5)
+	public File getPsrfFile () {
+//		return this.psrfFile;
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_PSRF);
+	}
+	
+//	@Clipboard(name = "CodeML Output Summary", order=7)
+	public File getCodeMLSummaryFile () {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_CODEML_SUMMARY);
+	}
+	
+//	@Clipboard(name = "CodeML Output File", order=8)
+	public File getCodeMLOutputFile () {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_CODEML);
+	}
+	
+//	@Clipboard(name="T-Coffee Output", order=9)
+	public TCoffeeOutput getTCoffeeOutput() {
+		return this.tCoffeeOutput;
+	}
+
+//	@Clipboard(name="MrBayes Output", order=10)
+	public MrBayesOutput getMrBayesOutput() {
+		return this.mrBayesOutput;
+	}
+
+//	@Clipboard(name="CodeML Output", order=11)
+	public CodeMLOutput getCodeMLOutput() {
+		return this.codeMLOutput;
+	}
+	
+//	@Clipboard(name = "Alignment File", order=2)
+	public File getRenamedAlignedFastaFile() {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_ALIGNMENT);
+		//return renamedAlignedFastaFile;
+	}
+
+//	@Clipboard(name = "Protein Alignment Fasta File", order=3)
+	public File getRenamedAlignedProteinFastaFile() {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_PROTEIN_ALIGNMENT_FASTA);
+		//return renamedAlignedProteinFastaFile;
+	}
+
+//	@Clipboard(name = "Protein Alignment Aln File", order=4)
+	public File getRenamedAlignedProteinAlnFile() {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_PROTEIN_ALIGNMENT_ALN);
+		//return renamedAlignedProteinFastaFile;
+	}
+	
+	public File getRenamedScoreAsciiFile() {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_SCORE_ASCII);
+	}
+
+//	@Clipboard(name = "MrBayes Consensus Tree", order=6)
+	public File getRenamedTreeFile() {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_TREE);
+		//return renamedTreeFile;
+	}
+	
+	public AlignmentConfidences loadConfidences() throws ParseException, IOException {
+		if (this.getRenamedAlignedFastaFile().exists() 
+			&& this.getCodeMLSummaryFile().exists()
+		) {
+			final Map<String, String> sequences = new LinkedHashMap<String, String>();
+			
+			final List<FastaSequence> fastaSequences = 
+				FastaUtils.listFastaSequences(
+					this.getRenamedAlignedProteinFastaFile(),
+					ExperimentOutput.class.getName()
+				);
+			
+			
+			for (FastaSequence seq : fastaSequences) {
+				if (seq instanceof FastaSequence) {
+					FastaSequence sequence = (FastaSequence) seq;
+					if (sequence.getDesc().isEmpty()) {
+						sequences.put(sequence.getId(), sequence.getData());
+					} else {
+						sequences.put(sequence.getId() + " " + sequence.getDesc(), sequence.getData());
+					}
+				} else {
+					Sequence sequence = (Sequence) seq;
+					sequences.put(sequence.getId() + " ", sequence.getData());
+					
+				}
+			}
+			
+			return this.getCodeMLOutput().getConfidences(sequences, this.getCodeMLSummaryFile());
+		} else {
+			return null;
+		}
+	}
+	
+	public int[] loadScores() throws IOException {
+		if (this.getRenamedScoreAsciiFile().exists()) {
+			final List<String> lines = FileUtils.readLines(this.getRenamedScoreAsciiFile());
+			
+			String score = "";
+			for (String line : lines) {
+				if (line.matches("c[o-]\\s+([0-9]|-)+")) {
+					score += line.split("\\s+")[1];
+				}
+			}
+			
+			final int scores[] = new int[score.length()];
+			for (int i = 0; i < score.length(); i++) {
+				try {
+					scores[i] = Integer.valueOf(Character.toString(score.charAt(i)));
+				} catch (NumberFormatException nfe) {
+					scores[i] = -1;
+				}
+			}
+			
+			return scores;
+		} else {
+			return null;
+		}
+	}
+}
