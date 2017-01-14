@@ -36,7 +36,9 @@ import es.uvigo.ei.sing.adops.datatypes.MrBayesOutput;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
 
 public class MrBayes3_2ProcessManager extends MrBayesDefaultProcessManager {
-	private static final String[] SUPPORTED_VERSIONS = { "3.2.1", "3.2.2" };
+	private static final String[] SUPPORTED_VERSIONS = {
+		"3.2.1", "3.2.2"
+	};
 
 	public MrBayes3_2ProcessManager(MrBayesConfiguration configuration) throws OperationException {
 		super(configuration);
@@ -48,7 +50,7 @@ public class MrBayes3_2ProcessManager extends MrBayesDefaultProcessManager {
 			if (version.startsWith(supportedVersion))
 				return true;
 		}
-		
+
 		return false;
 	}
 
@@ -56,51 +58,47 @@ public class MrBayes3_2ProcessManager extends MrBayesDefaultProcessManager {
 	public void buildSummary(MrBayesOutput output) throws OperationException {
 		try {
 			FileUtils.moveFile(
-				new File(output.getConFile().getAbsolutePath() + ".tre"), 
+				new File(output.getConFile().getAbsolutePath() + ".tre"),
 				output.getConFile()
 			);
-			
+
 			final List<String> lines = FileUtils.readLines(output.getConFile());
 			final ListIterator<String> itLines = lines.listIterator();
 			while (itLines.hasNext()) {
 				final String line = itLines.next();
-				
+
 				if (line.contains("tree con_50_majrule")) {
 					final String[] lineSplit = line.split("=");
 					final String tree = lineSplit[1].trim();
-					
+
 					itLines.set(lineSplit[0] + "= " + Newick.parse(tree.trim()));
 				}
 			}
-			
+
 			FileUtils.writeLines(output.getConFile(), lines);
-			
+
 			super.buildSummary(output);
 		} catch (Exception e) {
 			throw new OperationException("Error while working with consensus tree", e);
 		}
 	}
-	
+
 	@Override
 	public void createMrBayesFile(MrBayesOutput output)
-			throws OperationException {
-		BufferedReader br = null;
-		PrintWriter pw = null;
-		
-		try {
-			br = new BufferedReader(new FileReader(output.getNexusFile()));
-			pw = new PrintWriter(output.getMrBayesFile());
-			
-			
+		throws OperationException {
+		try (BufferedReader br = new BufferedReader(new FileReader(output.getNexusFile()));
+			PrintWriter pw = new PrintWriter(output.getMrBayesFile())
+		) {
+
 			// Nexus data copying and nchar extraction
 			pw.println(br.readLine());
 			pw.println(br.readLine());
-			
+
 			final String ncharLine = br.readLine();
 			pw.println(ncharLine);
-			
+
 			final int nchar = Integer.parseInt(ncharLine.split("nchar=")[1].split(";")[0]);
-			
+
 			String line;
 			while ((line = br.readLine()) != null) {
 				pw.println(line);
@@ -108,7 +106,7 @@ public class MrBayes3_2ProcessManager extends MrBayesDefaultProcessManager {
 
 			// MrBayes parameter creation
 			pw.println("begin mrbayes;");
-			pw.println("set autoclose=yes nowarn=yes;"); 
+			pw.println("set autoclose=yes nowarn=yes;");
 			pw.print("charset first_pos  = 1-");
 			pw.print(nchar);
 			pw.println("\\3;");
@@ -131,17 +129,11 @@ public class MrBayes3_2ProcessManager extends MrBayesDefaultProcessManager {
 			pw.print("sumt conformat=simple burnin=");
 			pw.print(this.configuration.getTBurnin());
 			pw.println(";");
-        	pw.println("end;");
-        	pw.println();
-        	pw.flush();
+			pw.println("end;");
+			pw.println();
+			pw.flush();
 		} catch (IOException ioe) {
 			throw new OperationException(null, "Error creating MrBayes input file: " + output.getMrBayesFile(), ioe);
-		} finally {
-			if (br != null)
-				try { br.close(); }
-				catch (IOException ioe) {}
-			if (pw != null)
-				pw.close();
 		}
 	}
 }

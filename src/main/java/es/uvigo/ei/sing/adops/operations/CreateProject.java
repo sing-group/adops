@@ -29,79 +29,30 @@ import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.Project;
 
-@Operation(
-	name = "Create Project",
-	description = "A project allows you to run several experiments on a FASTA file."
-)
+@Operation(name = "Create Project", description = "A project allows you to run several experiments on a FASTA file.")
 public class CreateProject {
 	private File fastaFile;
 	private boolean copyFastaFile;
-//	private File namesFile;
-//	private boolean copyNamesFile;
 	private File folder;
-	
-	@Port(
-		name = "Project Folder",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Folder that will contain the project files."
-	)
+
+	@Port(name = "Project Folder", order = 1, direction = Direction.INPUT, allowNull = false, description = "Folder that will contain the project files.")
 	public void setFolder(File folder) {
 		this.folder = folder;
 	}
 
-	@Port(
-		name = "FASTA File",
-		order = 2,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Input FASTA file for the experiments"
-	)
+	@Port(name = "FASTA File", order = 2, direction = Direction.INPUT, allowNull = false, description = "Input FASTA file for the experiments")
 	public void setFastaFile(File fastaFile) {
 		this.fastaFile = fastaFile;
 	}
-	
-	@Port(
-		name = "Copy FASTA File",
-		order = 3,
-		direction = Direction.INPUT,
-		defaultValue = "true",
-		allowNull = false,
-		description = "Whether to copy the FASTA file into the project folder"
-	)
+
+	@Port(name = "Copy FASTA File", order = 3, direction = Direction.INPUT, defaultValue = "true", allowNull = false, description = "Whether to copy the FASTA file into the project folder")
 	public void setCopyFastaFile(boolean copyFastaFile) {
 		this.copyFastaFile = copyFastaFile;
 	}
 
-//	@Port(
-//		name = "Names File",
-//		order = 4,
-//		direction = Direction.INPUT,
-//		allowNull = false,
-//		description = "File with the real names of the tree nodes"
-//	)
-//	public void setNamesFile(File namesFile) {
-//		this.namesFile = namesFile;		
-//	}
-//
-//	@Port(
-//		name = "Copy Names File",
-//		order = 5,
-//		direction = Direction.INPUT,
-//		defaultValue = "true",
-//		allowNull = false,
-//		description = "Whether to copy the names file into the project folder"
-//	)
-//	public void setCopyNamesFile(boolean copyNamesFile) {
-//		this.copyNamesFile = copyNamesFile;
-//	}
-
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 1000
-	)
+	@Port(direction = Direction.OUTPUT, order = 1000)
 	public Project create() throws IllegalArgumentException, IOException {
 		return new Project(this.folder, this.fastaFile, !this.copyFastaFile);
 	}
+	
 }

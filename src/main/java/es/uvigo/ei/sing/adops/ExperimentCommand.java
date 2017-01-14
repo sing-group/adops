@@ -29,12 +29,13 @@ import es.uvigo.ei.sing.yacli.Option;
 import es.uvigo.ei.sing.yacli.Parameters;
 
 public class ExperimentCommand implements Command {
-	private static final Option OPTION_CONFIGURATION_FILE = new Option("ConfigurationFile", "cf", "Experiment configuration file", true, true);
-	
+	private static final Option OPTION_CONFIGURATION_FILE =
+		new Option("ConfigurationFile", "cf", "Experiment configuration file", true, true);
+
 	private static final List<Option> OPTIONS = Arrays.asList(
 		ExperimentCommand.OPTION_CONFIGURATION_FILE
 	);
-	
+
 	@Override
 	public String getName() {
 		return "run";
@@ -53,7 +54,7 @@ public class ExperimentCommand implements Command {
 	@Override
 	public void execute(Parameters parameters) throws Exception {
 		if (parameters.hasOption(ExperimentCommand.OPTION_CONFIGURATION_FILE)) {
-			
+
 		}
 	}
 }

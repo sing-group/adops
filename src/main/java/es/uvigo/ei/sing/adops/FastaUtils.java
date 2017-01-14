@@ -44,10 +44,10 @@ public class FastaUtils {
 	public static boolean isFasta(File file, String logger) {
 		if (file.getName().toLowerCase().endsWith("fasta")) {
 			final Reader reader = new AutodetectionReader(logger);
-			
+
 			try {
 				reader.read(FileUtils.readFileToString(file));
-				
+
 				return true;
 			} catch (Exception e) {
 				return false;
@@ -64,7 +64,7 @@ public class FastaUtils {
 	public static Fasta readFasta(File file, String logger) throws ParseException, IOException {
 		if (isFasta(file)) {
 			FastaReader reader = new FastaReader(logger);
-			
+
 			return (Fasta) reader.read(FileUtils.readFileToString(file));
 		} else {
 			throw new IllegalArgumentException(file.getAbsolutePath() + " file is not a valid Fasta");
@@ -72,44 +72,41 @@ public class FastaUtils {
 	}
 
 	public static Fasta extractSequences(Fasta fasta, List<String> sequenceIds) {
-		final Vector<FastaSequence> selectedSequences = 
-			new Vector<FastaSequence>(sequenceIds.size());
-		
+		final Vector<FastaSequence> selectedSequences = new Vector<>(sequenceIds.size());
+
 		for (FastaSequence fastaSeq : FastaUtils.listFastaSequences(fasta)) {
 			if (sequenceIds.contains(fastaSeq.getId())) {
 				selectedSequences.add(fastaSeq);
 			}
 		}
-		
+
 		return new Fasta(selectedSequences);
 	}
-	
+
 	public static List<FastaSequence> listFastaSequences(File fastaFile)
-	throws ParseException, IOException {
+		throws ParseException, IOException {
 		return FastaUtils.listFastaSequences(fastaFile, FastaUtils.class.getName());
 	}
-	
+
 	public static List<FastaSequence> listFastaSequences(File fastaFile, String logger)
-	throws ParseException, IOException {
+		throws ParseException, IOException {
 		final Fasta fasta = FastaUtils.readFasta(fastaFile, logger);
-		final List<FastaSequence> sequences = 
-			new ArrayList<FastaSequence>(fasta.getSeqs().size());
-		
+		final List<FastaSequence> sequences = new ArrayList<>(fasta.getSeqs().size());
+
 		for (Object seq : fasta.getSeqs()) {
 			sequences.add((FastaSequence) seq);
 		}
-		
+
 		return sequences;
 	}
 
 	public static List<FastaSequence> listFastaSequences(Fasta fasta) {
-		final List<FastaSequence> sequences = 
-			new ArrayList<FastaSequence>(fasta.getSeqs().size());
-		
+		final List<FastaSequence> sequences = new ArrayList<>(fasta.getSeqs().size());
+
 		for (Object seq : fasta.getSeqs()) {
 			sequences.add((FastaSequence) seq);
 		}
-		
+
 		return sequences;
 	}
 }

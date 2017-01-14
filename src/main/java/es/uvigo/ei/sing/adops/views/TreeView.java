@@ -52,70 +52,70 @@ public class TreeView extends JPanel {
 	private static final String CONFIGURATION_FILE = TreeView.class.getResource("_aptx_configuration_file.asc").toString();
 	private final MainPanel mainPanel;
 	private final JFileChooser fileChooser;
-	
+
 	public TreeView(File mrbayesFile) throws PhylogenyParserException, IOException {
 		super(new BorderLayout());
 
-        final PhylogenyParser parser = new NexusPhylogeniesParser();
-        parser.setSource(mrbayesFile);
-        final Phylogeny[] phys = parser.parse();
-        
-        this.fileChooser = new JFileChooser(mrbayesFile.getParent());
-        this.fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        this.fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        this.fileChooser.setDialogTitle("Export phylogeny");
-        
-        final Configuration configuration = new Configuration(TreeView.CONFIGURATION_FILE, true, false);
-        
+		final PhylogenyParser parser = new NexusPhylogeniesParser();
+		parser.setSource(mrbayesFile);
+		final Phylogeny[] phys = parser.parse();
+
+		this.fileChooser = new JFileChooser(mrbayesFile.getParent());
+		this.fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		this.fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+		this.fileChooser.setDialogTitle("Export phylogeny");
+
+		final Configuration configuration = new Configuration(TreeView.CONFIGURATION_FILE, true, false);
+
 		this.mainPanel = new MainPanel(configuration, null);
-		
+
 		for (Phylogeny phy : phys) {
 			this.mainPanel.addPhylogenyInNewTab(phy, configuration, phy.getName(), null);
 		}
-		
-		
+
 		final JPanel panelExport = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		
+
 		final JLabel lblExport = new JLabel("Export phylogeny as ");
 		final JComboBox<GraphicsExportType> cmbFormat = new JComboBox<>(GraphicsExportType.values());
 		cmbFormat.setSelectedItem(GraphicsExportType.PNG);
-		final JButton btnExport = new JButton(new AbstractAction("Go") {
-			private static final long serialVersionUID = 1L;
+		final JButton btnExport = new JButton(
+			new AbstractAction("Go") {
+				private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Phylogeny phylogeny = mainPanel.getCurrentTreePanel().getPhylogeny();
-				
-				exportPhylogenyAsImage(phylogeny, (GraphicsExportType) cmbFormat.getSelectedItem());
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Phylogeny phylogeny = mainPanel.getCurrentTreePanel().getPhylogeny();
+
+					exportPhylogenyAsImage(phylogeny, (GraphicsExportType) cmbFormat.getSelectedItem());
+				}
 			}
-		});
-		
+		);
+
 		panelExport.add(lblExport);
 		panelExport.add(cmbFormat);
 		panelExport.add(btnExport);
-		
+
 		this.add(this.mainPanel, BorderLayout.CENTER);
 		this.add(panelExport, BorderLayout.NORTH);
-//		mainPanel.addPhylogenyInNewTab(phys[0], configuration, phys[0].getName(), null);
 	}
-	
+
 	protected MainPanel getMainPanel() {
 		return this.mainPanel;
 	}
-    
-    private void exportPhylogenyAsPdf(final String file_name) {
+
+	private void exportPhylogenyAsPdf(final String file_name) {
 		String pdfWritenTo = "";
-		
+
 		try {
 			final TreePanel treePanel = this.getMainPanel().getCurrentTreePanel();
 			pdfWritenTo = PdfExporter.writePhylogenyToPdf(
 				file_name, treePanel,
 				treePanel.getWidth(), treePanel.getHeight()
 			);
-			
+
 			if (!ForesterUtil.isEmpty(pdfWritenTo)) {
 				JOptionPane.showMessageDialog(
-					this, 
+					this,
 					"Wrote PDF to: " + pdfWritenTo,
 					"Information",
 					JOptionPane.INFORMATION_MESSAGE
@@ -123,7 +123,7 @@ public class TreeView extends JPanel {
 			} else {
 				JOptionPane.showMessageDialog(
 					this,
-					"There was an unknown problem when attempting to write to PDF file: \""	+ file_name + "\"", 
+					"There was an unknown problem when attempting to write to PDF file: \"" + file_name + "\"",
 					"Error",
 					JOptionPane.ERROR_MESSAGE
 				);
@@ -131,26 +131,27 @@ public class TreeView extends JPanel {
 		} catch (final IOException e) {
 			JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
-    }
-	
+	}
+
 	private void exportPhylogenyAsImage(Phylogeny p, GraphicsExportType type) {
-		if (p == null || p.isEmpty() || type == null) return;
-		
+		if (p == null || p.isEmpty() || type == null)
+			return;
+
 		if (this.fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			File file = this.fileChooser.getSelectedFile();
-			
+
 			if (!file.toString().toLowerCase().endsWith(type.toString())) {
 				file = new File(file.toString() + "." + type);
 			}
 			if (file.exists()) {
 				final int selection = JOptionPane.showConfirmDialog(
-					this, 
-					file + " already exists. Overwrite?", 
+					this,
+					file + " already exists. Overwrite?",
 					"Warning",
 					JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.WARNING_MESSAGE
 				);
-				
+
 				if (selection != JOptionPane.OK_OPTION) {
 					return;
 				} else {
@@ -159,14 +160,14 @@ public class TreeView extends JPanel {
 					} catch (final Exception e) {
 						JOptionPane.showMessageDialog(
 							this,
-							"Failed to delete: " + file, 
+							"Failed to delete: " + file,
 							"Error",
 							JOptionPane.WARNING_MESSAGE
 						);
 					}
 				}
 			}
-			
+
 			if (type.equals(GraphicsExportType.PDF)) {
 				this.exportPhylogenyAsPdf(file.toString());
 			} else {
@@ -175,30 +176,30 @@ public class TreeView extends JPanel {
 		}
 	}
 
-    private void writePhylogenyToGraphicsFile( final String fileName, final GraphicsExportType type ) {
+	private void writePhylogenyToGraphicsFile(final String fileName, final GraphicsExportType type) {
 		final TreePanel treePanel = this.getMainPanel().getCurrentTreePanel();
-		
+
 		treePanel.setParametersForPainting(
 			treePanel.getWidth(),
-			treePanel.getHeight(), 
+			treePanel.getHeight(),
 			true
 		);
-		
+
 		try {
 			final String fileWrittenTo = Util.writePhylogenyToGraphicsFile(
 				fileName,
-				treePanel.getWidth(), 
-				treePanel.getHeight(), 
+				treePanel.getWidth(),
+				treePanel.getHeight(),
 				treePanel,
-				this.getMainPanel().getControlPanel(), 
-				type, 
+				this.getMainPanel().getControlPanel(),
+				type,
 				this.getMainPanel().getOptions()
 			);
-			
+
 			if (fileWrittenTo != null && fileWrittenTo.length() > 0) {
 				JOptionPane.showMessageDialog(
-					this, 
-					"Wrote image to: " + fileWrittenTo, 
+					this,
+					"Wrote image to: " + fileWrittenTo,
 					"Graphics Export",
 					JOptionPane.INFORMATION_MESSAGE
 				);
@@ -215,5 +216,5 @@ public class TreeView extends JPanel {
 		} finally {
 			this.getMainPanel().repaint();
 		}
-    }
+	}
 }

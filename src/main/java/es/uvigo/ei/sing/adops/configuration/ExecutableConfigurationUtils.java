@@ -25,30 +25,28 @@ import java.io.File;
 
 public final class ExecutableConfigurationUtils {
 	private ExecutableConfigurationUtils() {}
-	
+
 	public static String createExecutableCommand(ExecutableConfiguration configuration) {
 		return ExecutableConfigurationUtils.createExecutableCommand(configuration, null, null);
 	}
-	
+
 	public static String createExecutableCommand(ExecutableConfiguration configuration, String prefix, String suffix) {
-		final StringBuilder sb = prefix == null? 
-			new StringBuilder():
-			new StringBuilder(prefix);
-		
+		final StringBuilder sb = prefix == null ? new StringBuilder() : new StringBuilder(prefix);
+
 		final String binDir = configuration.getDirectory();
 		final String bin = configuration.getBinary();
-		
+
 		if (binDir != null && !binDir.trim().isEmpty()) {
 			sb.append(binDir.trim());
 			if (!binDir.endsWith(File.separator))
 				sb.append(File.separator);
 		}
-		if (bin != null && !bin.trim().isEmpty()) 
+		if (bin != null && !bin.trim().isEmpty())
 			sb.append(bin.trim());
-		
+
 		if (suffix != null)
 			sb.append(suffix);
-		
+
 		return sb.toString();
 	}
 }

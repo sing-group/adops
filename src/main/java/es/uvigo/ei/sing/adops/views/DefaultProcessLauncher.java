@@ -42,91 +42,76 @@ import es.uvigo.ei.aibench.core.clipboard.ClipboardItem;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 
 public class DefaultProcessLauncher extends JPanel {
-	/**
-	 * Serial version UID.
-	 */
 	private static final long serialVersionUID = 1L;
+	
 	private final JTextArea taDocument;
 	private final JScrollPane spDocument;
 
-	
 	public DefaultProcessLauncher(Experiment experiment) {
 		super(new BorderLayout());
-		
+
 		this.taDocument = new JTextArea();
 		this.spDocument = new JScrollPane(this.taDocument);
-		
-		final DocumentOutputStream dos = new DocumentOutputStream();
-		final JButton btnLaunch = new JButton(new AbstractAction("Launch") {
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				Core.getInstance().executeOperation(
-					"es.uvigo.ei.sing.adops.operations.testprocess", 
-					new ProgressHandler() {
-						@Override
-						public void validationError(Throwable arg0) {
-							// TODO Auto-generated method stub
-							
-						}
-						
-						@Override
-						public void operationStart(Object arg0, Object arg1) {
-							// TODO Auto-generated method stub
-							
-						}
-						
-						@Override
-						public void operationFinished(List<Object> arg0, List<ClipboardItem> arg1) {
-							// TODO Auto-generated method stub
-							
-						}
-						
-						@Override
-						public void operationError(Throwable arg0) {
-							// TODO Auto-generated method stub
-							
-						}
-					}, 
-					Collections.singletonList(dos)
-				);
+		final DocumentOutputStream dos = new DocumentOutputStream();
+		final JButton btnLaunch = new JButton(
+			new AbstractAction("Launch") {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					Core.getInstance().executeOperation(
+						"es.uvigo.ei.sing.adops.operations.testprocess",
+						new ProgressHandler() {
+							@Override
+							public void validationError(Throwable t) {}
+
+							@Override
+							public void operationStart(Object progressBean, Object operationID) {}
+
+							@Override
+							public void operationFinished(List<Object> results, List<ClipboardItem> clipboardItems) {}
+
+							@Override
+							public void operationError(Throwable t) {}
+						},
+						Collections.singletonList(dos)
+					);
+				}
 			}
-		});
-		
-		//Core.getInstance().getClipboard().putItem(dos, "dos");
-		
+		);
+
 		this.add(btnLaunch, BorderLayout.NORTH);
 		this.add(spDocument, BorderLayout.CENTER);
-		
+
 		this.taDocument.append("Hello World!!");
 	}
-	
+
 	private class DocumentOutputStream extends OutputStream {
 		private byte[] buffer;
 		private int index;
-		
+
 		public DocumentOutputStream() {
 			super();
 			this.buffer = new byte[1024];
 			this.index = 0;
 		}
-		
+
 		@Override
 		public void write(int b) throws IOException {
 			this.buffer[this.index++] = (byte) b;
-			
+
 			if (this.index == this.buffer.length) {
 				this.index = 0;
-				
+
 				final String text = new String(this.buffer, Charset.forName("UTF-8"));
-				
+
 				DefaultProcessLauncher.this.taDocument.append(text);
 				final JScrollBar scrollbar = DefaultProcessLauncher.this.spDocument.getVerticalScrollBar();
 				scrollbar.setValue(scrollbar.getMaximum());
 			}
 		}
-		
+
 		@Override
 		public void flush() throws IOException {
 			super.flush();

@@ -26,20 +26,12 @@ import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 
-@Operation(
-	name = "Clean Experiment",
-	description = "Clean an experiment, removing all its files except input.fasta, names.txt and experiment.conf."
-)
+@Operation(name = "Clean Experiment", description = "Clean an experiment, removing all its files except input.fasta, names.txt and experiment.conf.")
 public class CleanExperiment {
-
-	@Port(
-		name = "Experiment",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Experiment to be cleaned"
-	)
+	
+	@Port(name = "Experiment", order = 1, direction = Direction.INPUT, allowNull = false, description = "Experiment to be cleaned")
 	public void deleteExperiment(Experiment experiment) {
 		experiment.clear();
 	}
+	
 }

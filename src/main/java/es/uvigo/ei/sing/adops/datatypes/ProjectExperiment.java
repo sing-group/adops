@@ -24,7 +24,6 @@ package es.uvigo.ei.sing.adops.datatypes;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,21 +48,18 @@ import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
 import es.uvigo.ei.sing.adops.Utils;
 import es.uvigo.ei.sing.adops.configuration.Configuration;
 
-@Datatype(
-	structure=Structure.COMPLEX,
-	namingMethod = "getName"
-)
+@Datatype(structure = Structure.COMPLEX, namingMethod = "getName")
 public class ProjectExperiment extends Observable implements Experiment, Observer {
 	private static final Logger LOG = Logger.getLogger(ProjectExperiment.class);
-	
+
 	private static final String DIRECTORY_ALLFILES = "allfiles";
 	private static final String FILE_EXPERIMENT_CONF = "experiment.conf";
 	private static final String FILE_EXPERIMENT_NOTES = "notes.txt";
-	
+
 	private final String name;
 	private boolean deleted = false;
 	private boolean running = false;
-	
+
 	private final Project project;
 	private final File folder, filesFolder;
 	private final File fastaFile, namesFile;
@@ -71,7 +67,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 	private final Configuration configuration;
 	private final File propertiesFile;
 	private String notes;
-	
+
 	private String warnings;
 
 	private ExperimentOutput result;
@@ -98,8 +94,6 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 			this.propertiesFile
 		);
 
-		// String sequences = this.configuration.getProperty("input.sequences");
-
 		this.fastaFile = new File(folder, this.project.getFastaFile().getName());
 		this.namesFile = new File(folder, this.project.getNamesFile().getName());
 
@@ -118,20 +112,21 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 	public ProjectExperiment(Project project, String name) throws IOException, IllegalArgumentException {
 		super();
 		this.folder = new File(project.getFolder(), name);
-		
+
 		if (folder.getAbsolutePath().length() >= 264 || name.length() >= 128)
 			throw new IllegalArgumentException("Experiment path too long. T-Coffee won't work.");
 		if (folder.getAbsolutePath().contains(" "))
 			throw new IllegalArgumentException("Experiment path can't contain white spaces. T-Coffee won't work.");
-		
+
 		if (this.folder.exists() && this.folder.listFiles().length != 0)
 			throw new IllegalArgumentException("Experiment folder is not empty (" + this.folder + ")");
-		
+
 		this.project = project;
 		this.warnings = "";
-		
+
 		name = name.trim();
-		if (name.isEmpty())	throw new IllegalArgumentException("name");
+		if (name.isEmpty())
+			throw new IllegalArgumentException("name");
 		this.name = name;
 
 		this.filesFolder = new File(this.folder, ProjectExperiment.DIRECTORY_ALLFILES);
@@ -150,7 +145,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 
 		this.fastaFile = new File(folder, this.project.getFastaFile().getName());
 		this.namesFile = new File(folder, this.project.getNamesFile().getName());
-		
+
 		if (this.getNotesFile().exists()) {
 			this.notes = FileUtils.readFileToString(this.getNotesFile());
 		} else {
@@ -158,78 +153,28 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 			this.notes = "";
 		}
 
-//		this.configuration.setProperty(Configuration.PROPERTY_INPUT_SOURCE_FASTA,
-//				this.project.getFastaFile().getAbsolutePath());
-//		this.configuration.setProperty(Configuration.PROPERTY_INPUT_SOURCE_NAMES,
-//				this.project.getNamesFile().getAbsolutePath());
-
 		this.storeAllProperties();
-		
+
 		project.addExperiment(this);
 	}
 
 	private void loadResult() {
 		if (!this.isClean())
 			new ExperimentOutput(this);
-////		final File experimentConf = new File(this.folder, "experiment.conf");
-////		final File inputFasta = new File(this.folder, "input.fasta");
-////		final File summaryFile = new File(this.folder, this.getName() + ".sum");
-////		final File conFile = new File(this.folder, "aligned.fasta.mrb.con");
-////		final File codemlOut = new File(this.folder, "aligned.fasta.out");
-////		final File codemlSum = new File(this.folder, "aligned.fasta.out.sum");
-////		final File psrfFile = new File(this.folder, "mrbayes.log.psrf");
-////		final File logFile = new File(this.folder, "output.log");
-//
-////		if (this.propertiesFile.exists()) {
-////			this.configuration = new Configuration(experimentConf);
-//		final ExperimentOutput output = new ExperimentOutput(this);
-//		if (!output.isComplete()) 
-//			this.result = null;
-////		}
-//		
-////		if (experimentConf.exists()) && inputFasta.exists() && 
-////			summaryFile.exists() && conFile.exists() && 
-////			psrfFile.exists() && codemlOut.exists() && 
-////			codemlSum.exists() && logFile.exists() &&
-////			this.hasRenamedAlignedFastaFile() && this.hasRenamedAlignedProteinFastaFile()
-////		) {
-////			Configuration configuration = new Configuration(experimentConf);
-////			
-////			new ExperimentOutput(
-////				this,
-////				this.getRenamedAlignedFastaFile(),this.getRenamedAlignedProteinFastaFile(),
-////				codemlOut, summaryFile, codemlSum, psrfFile, conFile, logFile,
-////				new TCoffeeOutput(
-////					new File(this.folder, "input.fasta"), 
-////					this.filesFolder,
-////					configuration.getTCoffeeConfiguration().getAlignMethod()
-//////					new File(this.filesFolder, "tcoffee.out.log"), 
-//////					new File(this.filesFolder, "tcoffee.out.log"), 
-//////					0
-////				),
-//////				new MrBayesOutput(new File(this.filesFolder, "input.fasta.mnxs.mrb"), 0),
-////				new MrBayesOutput(this.getAlignedFastaFile(), this.getFilesFolder()),
-////				new CodeMLOutput(
-////					new File(this.filesFolder, "input.fasta.out"), 
-////					new File(this.filesFolder, "input.fasta.out.sum"), 
-////					0
-////				)
-////			);
-////		}
 	}
 
 	@Override
 	public void deleteResult() {
 		if (this.hasResult())
 			this.getResult().delete(); // Will be deleted on the update method.
-		
+
 		try {
 			if (this.filesFolder.isDirectory())
 				FileUtils.cleanDirectory(this.filesFolder);
 		} catch (IOException e) {}
-		
+
 		this.result = null;
-		
+
 		this.setChanged();
 		this.notifyObservers();
 	}
@@ -237,22 +182,22 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 	public String getName() {
 		return this.name;
 	}
-	
+
 	private String checkFastaFile() throws IllegalArgumentException {
 		final Set<Character> aminos = new HashSet<Character>(Arrays.asList('a', 'c', 't', 'g', 'A', 'C', 'T', 'G', '-'));
 		BufferedReader br = null;
-		
+
 		try {
 			final StringBuilder sb = new StringBuilder();
 			final LinkedHashMap<String, StringBuilder> replacements = new LinkedHashMap<String, StringBuilder>();
-			
+
 			br = new BufferedReader(new FileReader(this.fastaFile));
-			
+
 			String line = null;
 			while ((line = br.readLine()) != null && !line.startsWith(">")) {
 				sb.append(line).append('\n');
 			}
-			
+
 			String seqId = null;
 			String seq = null;
 			while (line != null) {
@@ -261,7 +206,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 				while ((line = br.readLine()) != null && !line.startsWith(">")) {
 					seq += line;
 				}
-				
+
 				// Non ACTG characters replacement
 				char[] charSequence = seq.toCharArray();
 				String data = "";
@@ -270,22 +215,22 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 						data += charSequence[i];
 					} else {
 						if (replacements.containsKey(seqId)) {
-							replacements.get(seqId).append(String.format(", [%d,%c]", i+1, charSequence[i]));
+							replacements.get(seqId).append(String.format(", [%d,%c]", i + 1, charSequence[i]));
 						} else {
-							replacements.put(seqId, new StringBuilder(String.format("[%d,%c]", i+1, charSequence[i])));
+							replacements.put(seqId, new StringBuilder(String.format("[%d,%c]", i + 1, charSequence[i])));
 						}
-						
+
 						data += '-';
 					}
 				}
-				
+
 				// Incomplete codons replacement
 				charSequence = data.toCharArray();
 				data = "";
 				String codon = "";
 				for (int i = 0; i < charSequence.length; i++) {
 					codon += Character.toString(charSequence[i]);
-					if ((i+1)%3 == 0) {
+					if ((i + 1) % 3 == 0) {
 						if (codon.contains("-")) {
 							data += "---";
 							if (replacements.containsKey(seqId)) {
@@ -295,19 +240,19 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 							}
 						} else {
 							data += codon;
-							
+
 						}
-						
+
 						codon = "";
 					}
 				}
-				
+
 				sb.append(seqId).append('\n');
 				sb.append(data).append('\n');
 			}
 
 			FileUtils.write(this.fastaFile, sb.toString());
-			
+
 			if (replacements.isEmpty()) {
 				return "";
 			} else {
@@ -316,66 +261,48 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 					summary.append(replacement.getKey()).append('\n');
 					summary.append(replacement.getValue()).append('\n');
 				}
-				
+
 				summary.append("\n-----\n");
-				
+
 				return summary.toString();
 			}
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Input file is not a valida Fasta file");
 		} finally {
 			if (br != null) {
-				try { br.close(); }
-				catch (IOException ioe) {}
+				try {
+					br.close();
+				} catch (IOException ioe) {}
 			}
 		}
 	}
+
 	@Clipboard(name = "Experiment folder", order = 1)
 	public ConstantDatatype getFolderData() {
 		return new ConstantDatatype("Experiment folder", this.getFolder().getName());
 	}
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#getFolder()
-	 */
+
 	@Override
 	public File getFolder() {
 		return this.folder;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#getFilesFolder()
-	 */
 	@Override
 	public File getFilesFolder() {
 		return this.filesFolder;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#getResult()
-	 */
 	@Override
 	@Clipboard(name = "Result", order = 2)
 	public ExperimentOutput getResult() {
 		return this.result;
 	}
-	
+
 	@Override
 	public String getWarnings() {
 		return this.warnings;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#hasResult()
-	 */
 	@Override
 	public boolean hasResult() {
 		return this.result != null;
@@ -384,17 +311,14 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 	public void setResult(ExperimentOutput result) {
 		if (this.result != null)
 			this.result.deleteObserver(this);
-		
+
 		this.result = result;
 		this.result.addObserver(this);
 
 		this.setChanged();
 		this.notifyObservers(result);
-		
-//		if (!this.result.isFinished()) 
-//			this.result.addObserver(this);
 	}
-	
+
 	@Override
 	public boolean isClean() {
 		if (this.hasResult()) {
@@ -403,15 +327,16 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 			final FileFilter filter = new FileFilter() {
 				@Override
 				public boolean accept(File pathname) {
-					if (pathname.equals(ProjectExperiment.this.getNotesFile()) ||
-						pathname.equals(ProjectExperiment.this.getPropertiesFile()) ||
-						pathname.equals(ProjectExperiment.this.getFastaFile()) || 
-						pathname.equals(ProjectExperiment.this.getNamesFile())
+					if (
+						pathname.equals(ProjectExperiment.this.getNotesFile()) ||
+							pathname.equals(ProjectExperiment.this.getPropertiesFile()) ||
+							pathname.equals(ProjectExperiment.this.getFastaFile()) ||
+							pathname.equals(ProjectExperiment.this.getNamesFile())
 					) {
 						return false;
 					} else if (pathname.equals(ProjectExperiment.this.getFilesFolder())) {
 						final List<File> files = Arrays.asList(pathname.listFiles());
-						
+
 						int countOutputFolders = 0;
 						if (files.contains(new File(pathname, TCoffeeOutput.OUTPUT_FOLDER_NAME)))
 							countOutputFolders++;
@@ -419,144 +344,105 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 							countOutputFolders++;
 						if (files.contains(new File(pathname, CodeMLOutput.OUTPUT_FOLDER_NAME)))
 							countOutputFolders++;
-						
+
 						return files.size() != countOutputFolders;
 					}
-					
+
 					return true;
 				}
 			};
-			
+
 			return this.getFolder().listFiles(filter).length == 0;
 		}
 	}
-	
+
 	@Override
 	public void clear() {
 		final FileFilter filter = new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
-				if (pathname.equals(ProjectExperiment.this.getNotesFile()) ||
-					pathname.equals(ProjectExperiment.this.getPropertiesFile()) ||
-					pathname.equals(ProjectExperiment.this.getFastaFile()) || 
-					pathname.equals(ProjectExperiment.this.getNamesFile()) ||
-					pathname.equals(ProjectExperiment.this.getFilesFolder())
+				if (
+					pathname.equals(ProjectExperiment.this.getNotesFile()) ||
+						pathname.equals(ProjectExperiment.this.getPropertiesFile()) ||
+						pathname.equals(ProjectExperiment.this.getFastaFile()) ||
+						pathname.equals(ProjectExperiment.this.getNamesFile()) ||
+						pathname.equals(ProjectExperiment.this.getFilesFolder())
 				) {
 					return false;
 				}
-				
+
 				return true;
 			}
 		};
-		
+
 		for (File file : this.getFolder().listFiles(filter)) {
-			if (file.isFile()) file.delete();
+			if (file.isFile())
+				file.delete();
 			else if (file.isDirectory())
 				try {
 					FileUtils.deleteDirectory(file);
 				} catch (IOException e) {}
 		}
-		
+
 		try {
 			FileUtils.cleanDirectory(this.getFilesFolder());
 		} catch (IOException e) {}
-		
+
 		new File(this.getFilesFolder(), TCoffeeOutput.OUTPUT_FOLDER_NAME).mkdirs();
 		new File(this.getFilesFolder(), MrBayesOutput.OUTPUT_FOLDER_NAME).mkdirs();
 		new File(this.getFilesFolder(), CodeMLOutput.OUTPUT_FOLDER_NAME).mkdirs();
-		
+
 		this.result = null;
-		
-		this.setChanged();
-		this.notifyObservers();
-	}
-	
-	@Override
-	public boolean isRunning() {
-		return this.running;
-	}
-	
-	@Override
-	public void setRunning(boolean running) {
-		this.running = running;
-		
+
 		this.setChanged();
 		this.notifyObservers();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#getProperties()
-	 */
+	@Override
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	@Override
+	public void setRunning(boolean running) {
+		this.running = running;
+
+		this.setChanged();
+		this.notifyObservers();
+	}
+
 	@Override
 	public Configuration getConfiguration() {
 		return this.configuration;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#getFastaFile()
-	 */
 	@Override
 	public File getFastaFile() {
 		return this.fastaFile;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#getNamesFile()
-	 */
 	@Override
 	public File getNamesFile() {
 		return this.namesFile;
 	}
-	
+
 	@Override
-	public Map<String,String> getNames() {
-        Map<String,String> names = new HashMap<String,String>();
-        
-        BufferedReader br = null;
-        try {
-	        br = new BufferedReader(new FileReader(this.getNamesFile()));
-	        
-	        String line = null;
-	        while ((line=br.readLine()) != null) {
-	        	final String[] splits = line.split(" - ");
-	        	names.put(splits[1].trim(), splits[0].trim());
-	        }
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public Map<String, String> getNames() {
+		final Map<String, String> names = new HashMap<>();
+
+		try (BufferedReader br = new BufferedReader(new FileReader(this.getNamesFile()))) {
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				final String[] splits = line.split(" - ");
+				names.put(splits[1].trim(), splits[0].trim());
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (br != null)
-				try { br.close(); }
-				catch (IOException ioe) {}
+			LOG.error("Error retrieving experiment names", e);
 		}
-        
-        return names;
+
+		return names;
 	}
 
-//	@Override
-//	public File getAlignedFastaFile() {
-//		return this.result.getTCoffeeOutput().getAlignmentFile();
-//	}
-//
-//	@Override
-//	public boolean hasAlignedFastaFile() {
-//		return this.getAlignedFastaFile().isFile();
-//	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see es.uvigo.ei.sing.adops.datatypes.IExperiment#getPropertiesFile()
-	 */
 	@Override
 	public File getPropertiesFile() {
 		return this.propertiesFile;
@@ -582,8 +468,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 		try {
 			FileUtils.writeStringToFile(this.getNotesFile(), notes);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Couldn't not store notes", e);
 		}
 	}
 
@@ -597,9 +482,9 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 		try {
 			FileUtils.deleteDirectory(this.folder);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Couldn't not delete project's directory", e);
 		}
+		
 		this.deleted = true;
 		this.project.removeExperiment(this);
 		this.setChanged();
@@ -619,31 +504,31 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 	public File getSourceNamesFile() {
 		return project.getNamesFile();
 	}
-	
+
 	public List<String> listSequenceName() {
 		final List<String> names = new ArrayList<String>();
-		
+
 		try {
 			final List<String> lines = FileUtils.readLines(this.getSourceNamesFile());
-			
+
 			for (String line : lines) {
 				final String[] split = line.split(" - ");
-				
+
 				if (split.length == 2) {
 					names.add(split[0].trim());
 				}
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return names;
 	}
-	
+
 	public List<String> listSelectedSequenceName() {
 		final String sequences = this.configuration.getInputSequences();
-		
+
 		if (sequences.trim().isEmpty()) {
 			return this.listSequenceName();
 		} else {
@@ -651,16 +536,16 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 			for (String index : sequences.split("\\s")) {
 				indexes.add(Integer.parseInt(index));
 			}
-			
+
 			final List<String> names = new ArrayList<String>();
 			try {
 				final List<String> lines = FileUtils.readLines(this.getSourceNamesFile());
-				
+
 				int index = 1;
 				for (String line : lines) {
 					if (indexes.contains(index++)) {
 						final String[] split = line.split(" - ");
-						
+
 						if (split.length == 2) {
 							names.add(split[0].trim());
 						}
@@ -669,14 +554,14 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 			return names;
 		}
 	}
 
 	@Override
 	public void generateInputFiles() {
-		String sequences = this.configuration.getProperty(Configuration.PROPERTY_INPUT_SEQUENCES);
+		final String sequences = this.configuration.getProperty(Configuration.PROPERTY_INPUT_SEQUENCES);
 
 		if (sequences.isEmpty()) {
 			try {
@@ -686,19 +571,16 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 				e.printStackTrace();
 			}
 		} else {
-			Set<Integer> seqNumbers = new TreeSet<Integer>();
+			final Set<Integer> seqNumbers = new TreeSet<>();
 			String newFasta = "", newNames = "";
 
 			for (String i : sequences.split(" "))
 				seqNumbers.add(Integer.parseInt(i));
-			// Collections.sort(seqNumbers);
 
-			FileReader fastaReader;
-			try {
-				fastaReader = new FileReader(this.project.getFastaFile());
-				FileReader namesReader = new FileReader(this.project.getNamesFile());
-				BufferedReader fastaBR = new BufferedReader(fastaReader);
-				BufferedReader namesBR = new BufferedReader(namesReader);
+			try (
+				BufferedReader fastaBR = new BufferedReader(new FileReader(this.project.getFastaFile()));
+				BufferedReader namesBR = new BufferedReader(new FileReader(this.project.getNamesFile()))
+			) {
 
 				int j = 0;
 				Iterator<Integer> iter = seqNumbers.iterator();
@@ -725,24 +607,11 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 						sequence += '\n' + line;
 					}
 				} while (line != null);
-
-				fastaBR.close();
-				namesBR.close();
-
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			try {
+				
 				FileUtils.write(this.fastaFile, newFasta);
 				FileUtils.write(this.namesFile, newNames);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RuntimeException("Error generating input files", e);
 			}
 		}
 
@@ -760,52 +629,16 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 	public void update(Observable o, Object arg) {
 		if (o instanceof ExperimentOutput) {
 			final ExperimentOutput output = (ExperimentOutput) o;
-			
-//			if (output.isFinished())
-//				output.deleteObserver(this);
+
 			if (output.isDeleted()) {
 				output.deleteObserver(this);
 				this.result = null;
 			} else if (output.isFinished() && output.isComplete()) {
 				this.storeAllProperties();
 			}
-			
+
 			this.setChanged();
 			this.notifyObservers(output);
 		}
 	}
-	
-//	public String getMrBayesVersion() throws IOException {
-//		final String binDir = this.configuration.getMrBayesConfiguration().getDirectory();
-//		final String bin = this.configuration.getMrBayesConfiguration().getBinary();
-//		final String mpichCommand = this.configuration.getMrBayesConfiguration().getMpich();
-//		final String mrbayesCommand = mpichCommand + " " + binDir + bin + " random_file";
-//		
-//
-//		Process process = Runtime.getRuntime().exec(mrbayesCommand);
-//		InputStreamReader isr = new InputStreamReader(process.getInputStream());
-//		BufferedReader br = new BufferedReader(isr);
-//
-//		String version = br.readLine();
-//		
-//		return version.trim();
-//	}
-//
-//	public String getCodeMLVersion() throws IOException {
-//		File temp = File.createTempFile("codeml", ".ctl");
-//		
-//		final String binDir = this.configuration.getCodeMLConfiguration().getDirectory();
-//		final String bin = this.configuration.getCodeMLConfiguration().getBinary();
-//		final String codemlCommand = binDir + File.separator + bin + " " + temp.getAbsolutePath();
-//
-//		Process process = Runtime.getRuntime().exec(codemlCommand);
-//		InputStreamReader isr = new InputStreamReader(process.getInputStream());
-//		BufferedReader br = new BufferedReader(isr);
-//
-//		String version = br.readLine();
-//		
-//		temp.delete();
-//		
-//		return version.trim();		
-//	}
 }

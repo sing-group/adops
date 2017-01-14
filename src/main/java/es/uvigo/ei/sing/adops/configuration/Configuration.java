@@ -38,37 +38,34 @@ import es.uvigo.ei.sing.adops.Utils;
 
 public class Configuration extends Observable implements IConfiguration, Observer {
 	private final static Logger LOG = Logger.getLogger(Configuration.class);
-	
+
 	public static final String PROPERTY_INPUT_NAMES = "input.names";
-//	public static final String PROPERTY_INPUT_SOURCE_NAMES = "input.source_names";
 	public static final String PROPERTY_INPUT_ORIGINAL_FASTA = "input.original_fasta";
 	public static final String PROPERTY_INPUT_FASTA = "input.fasta";
-//	public static final String PROPERTY_INPUT_SOURCE_FASTA = "input.source_fasta";
 	public static final String PROPERTY_INPUT_SEQUENCES = "input.sequences";
-	
+
 	public static final String PROPERTY_EXPORT_DEFAULT_PATH = "export.default.path";
 
 	private static final String SYSTEM_CONF_FILE = "system.conf";
-	private final static Configuration SYSTEM_CONFIGURATION =
-		new Configuration(new File(Configuration.SYSTEM_CONF_FILE));
-	
+	private final static Configuration SYSTEM_CONFIGURATION = new Configuration(new File(Configuration.SYSTEM_CONF_FILE));
+
 	private final Configuration parent;
 	private final Properties properties;
-	
+
 	private final MrBayesConfiguration mrBayesConfiguration;
 	private final CodeMLConfiguration codeMLConfiguration;
 	private final TCoffeeConfiguration tcoffeeConfiguration;
-	
+
 	private final Map<Class<? extends SubConfiguration>, SubConfiguration> subConfigurationsMap;
-	
+
 	public Configuration(File propertiesFile) {
 		this(null, propertiesFile);
 	}
-	
+
 	public Configuration(Configuration parent, File propertiesFile) {
 		this(parent, Utils.loadOrCreateProperties(propertiesFile, Configuration.LOG));
 	}
-	
+
 	public Configuration(Configuration parent) {
 		this(parent, new Properties());
 	}
@@ -76,96 +73,79 @@ public class Configuration extends Observable implements IConfiguration, Observe
 	public Configuration(Properties properties) {
 		this(null, properties);
 	}
-	
+
 	public Configuration(Configuration parent, Properties properties) {
 		super();
 		this.parent = parent;
 		this.properties = properties;
-		
-		
+
 		this.tcoffeeConfiguration = new TCoffeeConfiguration(this);
 		this.mrBayesConfiguration = new MrBayesConfiguration(this);
 		this.codeMLConfiguration = new CodeMLConfiguration(this);
-		
+
 		this.tcoffeeConfiguration.addObserver(this);
 		this.mrBayesConfiguration.addObserver(this);
 		this.codeMLConfiguration.addObserver(this);
-		
-		this.subConfigurationsMap = new HashMap<Class<? extends SubConfiguration>, SubConfiguration>();
+
+		this.subConfigurationsMap = new HashMap<>();
 		this.subConfigurationsMap.put(TCoffeeConfiguration.class, this.tcoffeeConfiguration);
 		this.subConfigurationsMap.put(MrBayesConfiguration.class, this.mrBayesConfiguration);
 		this.subConfigurationsMap.put(CodeMLConfiguration.class, this.codeMLConfiguration);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <C extends SubConfiguration> C getSubConfiguration(Class<C> configClass) {
 		return (C) this.subConfigurationsMap.get(configClass);
 	}
-	
+
 	public MrBayesConfiguration getMrBayesConfiguration() {
 		return this.mrBayesConfiguration;
 	}
-	
+
 	public CodeMLConfiguration getCodeMLConfiguration() {
 		return this.codeMLConfiguration;
 	}
-	
+
 	public TCoffeeConfiguration getTCoffeeConfiguration() {
 		return this.tcoffeeConfiguration;
 	}
-	
+
 	public static Configuration getSystemConfiguration() {
 		return Configuration.SYSTEM_CONFIGURATION;
 	}
-	
+
 	public String getFastaFile() {
 		return this.getProperty(Configuration.PROPERTY_INPUT_FASTA);
 	}
-	
+
 	public void setFastaFile(String inputFasta) {
 		this.setProperty(Configuration.PROPERTY_INPUT_FASTA, inputFasta);
 	}
-	
+
 	public String getOriginalFastaFile() {
 		return this.getProperty(Configuration.PROPERTY_INPUT_ORIGINAL_FASTA);
 	}
-	
+
 	public void setOriginalFastaFile(String inputOriginalFasta) {
 		this.setProperty(Configuration.PROPERTY_INPUT_ORIGINAL_FASTA, inputOriginalFasta);
 	}
-	
-//	public String getSourceFastaFile() {
-//		return this.getProperty(Configuration.PROPERTY_INPUT_SOURCE_FASTA);
-//	}
-//	
-//	public void setSourceFastaFile(String inputFasta) {
-//		this.setProperty(Configuration.PROPERTY_INPUT_SOURCE_FASTA, inputFasta);
-//	}
-	
+
 	public String getNamesFile() {
 		return this.getProperty(Configuration.PROPERTY_INPUT_NAMES);
 	}
-	
+
 	public void setNamesFile(String namesFile) {
 		this.setProperty(Configuration.PROPERTY_INPUT_NAMES, namesFile);
 	}
 
-//	public String getSourceNamesFile() {
-//		return this.getProperty(Configuration.PROPERTY_INPUT_SOURCE_NAMES);
-//	}
-//	
-//	public void setSourceNamesFile(String namesFile) {
-//		this.setProperty(Configuration.PROPERTY_INPUT_SOURCE_NAMES, namesFile);
-//	}
-	
 	public String getInputSequences() {
 		return this.getProperty(Configuration.PROPERTY_INPUT_SEQUENCES);
 	}
-	
+
 	public void setInputSequences(String sequences) {
 		this.setProperty(Configuration.PROPERTY_INPUT_SEQUENCES, sequences);
 	}
-	
+
 	public String getExportDefaultPath() {
 		final String path = this.getProperty(Configuration.PROPERTY_EXPORT_DEFAULT_PATH);
 		if (path == null || path.isEmpty()) {
@@ -174,7 +154,7 @@ public class Configuration extends Observable implements IConfiguration, Observe
 			return path;
 		}
 	}
-	
+
 	public void setExportDefaultPath(String path) {
 		this.setProperty(Configuration.PROPERTY_EXPORT_DEFAULT_PATH, path);
 	}
@@ -184,12 +164,11 @@ public class Configuration extends Observable implements IConfiguration, Observe
 		if (this.properties.containsKey(key)) {
 			return this.properties.getProperty(key);
 		} else {
-			if (this.parent != null) 
+			if (this.parent != null)
 				return this.parent.getProperty(key);
 			else
 				return null;
 		}
-//		return this.properties.getProperty(key);
 	}
 
 	@Override
@@ -197,20 +176,21 @@ public class Configuration extends Observable implements IConfiguration, Observe
 		if (this.properties.containsKey(key)) {
 			return this.properties.getProperty(key);
 		} else {
-			if (this.parent != null) 
+			if (this.parent != null)
 				return this.parent.getProperty(key, defaultValue);
 			else
 				return defaultValue;
 		}
-//		return this.properties.getProperty(key, defaultValue);
 	}
 
 	@Override
 	public void setProperty(String key, String value) {
-		if (key.equals(TCoffeeConfiguration.PROPERTY_MAX_SEQS) ||
-				key.equals(TCoffeeConfiguration.PROPERTY_ALIGN_METHOD))
+		if (
+			key.equals(TCoffeeConfiguration.PROPERTY_MAX_SEQS) ||
+				key.equals(TCoffeeConfiguration.PROPERTY_ALIGN_METHOD)
+		)
 			Thread.dumpStack();
-		
+
 		if (this.parent != null) {
 			if (value.equals(this.parent.getProperty(key))) {
 				this.properties.remove(key);
@@ -220,34 +200,33 @@ public class Configuration extends Observable implements IConfiguration, Observe
 		} else {
 			this.properties.setProperty(key, value);
 		}
-		
+
 		this.setChanged();
 		this.notifyObservers(key);
 	}
 
 	@Override
 	public Set<String> listProperties() {
-		final SortedSet<String> properties = new TreeSet<String>(this.properties.stringPropertyNames());
+		final SortedSet<String> properties = new TreeSet<>(this.properties.stringPropertyNames());
 		if (this.parent != null) {
 			properties.addAll(this.parent.listProperties());
 		}
-		
+
 		return properties;
-//		return this.properties.stringPropertyNames();
 	}
-	
+
 	public Set<String> listChangedProperties() {
 		return this.properties.stringPropertyNames();
 	}
-	
+
 	@Override
 	public void clear() {
 		this.properties.clear();
-		
+
 		this.setChanged();
 		this.notifyObservers();
 	}
-	
+
 	public void loadProperties(File propertiesFile) {
 		try {
 			Utils.loadProperties(propertiesFile, this.properties, Configuration.LOG);
@@ -255,35 +234,35 @@ public class Configuration extends Observable implements IConfiguration, Observe
 			Configuration.LOG.warn("Properties could not be loaded from " + propertiesFile.getAbsolutePath(), e);
 		}
 	}
-	
+
 	public Properties toProperties(boolean full) {
 		final Properties props = new Properties();
-		
-		for (String key : full?this.listProperties():this.listChangedProperties()) {
+
+		for (String key : full ? this.listProperties() : this.listChangedProperties()) {
 			props.put(key, this.getProperty(key));
 		}
-		
+
 		return props;
 	}
-	
+
 	public boolean storeProperties(File propertiesFile) {
 		return Utils.storeProperties(this.properties, propertiesFile, Configuration.LOG);
 	}
-	
+
 	public void addProperties(Configuration configuration) {
 		this.properties.putAll(configuration.properties);
 	}
-	
+
 	@Override
 	public void update(Observable o, Object arg) {
 		this.setChanged();
 		this.notifyObservers(arg);
 	}
-	
+
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		
+
 		for (String key : this.listProperties()) {
 			sb.append(key).append('=').append(this.getProperty(key)).append('\n');
 		}

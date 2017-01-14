@@ -41,40 +41,39 @@ import es.uvigo.ei.sing.adops.operations.running.ProcessManager;
 
 public abstract class TCoffeeProcessManager extends ProcessManager {
 	private final static Logger LOGGER = Logger.getLogger(TCoffeeProcessManager.class);
-	
+
 	private final static Map<String, Class<? extends TCoffeeProcessManager>> VERSION_MANAGERS;
-	private final static Class<? extends TCoffeeProcessManager> DEFAUL_MANAGER_CLASS = 
-		TCoffeeDefaultProcessManager.class;
-	
+	private final static Class<? extends TCoffeeProcessManager> DEFAUL_MANAGER_CLASS = TCoffeeDefaultProcessManager.class;
+
 	static {
-		VERSION_MANAGERS = new TreeMap<String, Class<? extends TCoffeeProcessManager>>();
-		
+		VERSION_MANAGERS = new TreeMap<>();
+
 		VERSION_MANAGERS.put("10.00.r1613", TCoffeeDefaultProcessManager.class);
 		VERSION_MANAGERS.put("9.02.r1228", TCoffeeDefaultProcessManager.class);
 	}
-	
+
 	@Override
 	protected Logger getLogger() {
 		return TCoffeeProcessManager.LOGGER;
 	}
-	
+
 	public static List<String> getSupportedVersions() {
 		return new ArrayList<String>(VERSION_MANAGERS.keySet());
 	}
-	
+
 	public static boolean isSupported(String version) {
 		return VERSION_MANAGERS.containsKey(version);
 	}
-	
+
 	public static String getVersion(TCoffeeConfiguration configuration) throws IOException {
 		return GetVersions.getTCoffeeVersion(ExecutableConfigurationUtils.createExecutableCommand(configuration));
 	}
-	
+
 	public static TCoffeeProcessManager createManager(TCoffeeConfiguration configuration) throws OperationException {
 		Class<? extends TCoffeeProcessManager> pmClass;
 		try {
 			final String version = TCoffeeProcessManager.getVersion(configuration);
-			
+
 			if (VERSION_MANAGERS.containsKey(version)) {
 				pmClass = VERSION_MANAGERS.get(version);
 			} else {
@@ -83,69 +82,48 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 		} catch (IOException e) {
 			pmClass = DEFAUL_MANAGER_CLASS;
 		}
-		
+
 		try {
 			return pmClass.getConstructor(TCoffeeConfiguration.class).newInstance(configuration);
 		} catch (Exception e) {
 			throw new OperationException("", "Unexpected error while creating TCoffeeProcessManager", e);
 		}
-		
-//		return new TCoffeeDefaultProcessManager(configuration);
 	}
-	
-//	public static String createBinaryPath(TCoffeeConfiguration configuration) {
-//		final StringBuilder sb = new StringBuilder();
-//		
-//		final String binDir = configuration.getDirectory();
-//		final String bin = configuration.getBinary();
-//		
-//		if (binDir != null && !binDir.trim().isEmpty()) {
-//			sb.append(binDir);
-//			if (!binDir.endsWith(File.separator))
-//				sb.append(File.separator);
-//		}
-//		if (bin != null) sb.append(bin);
-//		
-//		return sb.toString();
-//	}
 
 	protected final TCoffeeConfiguration configuration;
 	protected final String tCoffeeCommand;
-	
+
 	public TCoffeeProcessManager(TCoffeeConfiguration configuration) throws OperationException {
-		super();
-		
 		try {
-			
-		if (!this.isCompatibleWith(TCoffeeProcessManager.getVersion(configuration)))
-			throw new IllegalArgumentException("Incompatible T-Coffee version");
+			if (!this.isCompatibleWith(TCoffeeProcessManager.getVersion(configuration)))
+				throw new IllegalArgumentException("Incompatible T-Coffee version");
 		} catch (IOException ioe) {
 			throw new IllegalArgumentException("Incompatible T-Coffee version");
 		}
-		
+
 		this.configuration = configuration;
 		this.tCoffeeCommand = ExecutableConfigurationUtils.createExecutableCommand(this.configuration);
 	}
-	
+
 	protected int runTCoffee(String params, File outputFile, boolean append) throws OperationException {
 		if (outputFile == null)
 			throw new IllegalArgumentException("outputFile can not be null");
-		
+
 		return this.runTCoffee(params, outputFile, append, null, outputFile.getParentFile());
 	}
-	
+
 	protected int runTCoffee(String params, File outputFile, boolean append, String[] envp, File directory) throws OperationException {
 		final String command = this.tCoffeeCommand + " " + params;
 		int result = -1;
-		
+
 		PrintStream ps = null;
 		try {
-			synchronized(this) {
+			synchronized (this) {
 				if (outputFile != null) {
 					ps = new PrintStream(new FileOutputStream(outputFile, append));
 					this.addPrinter(ps);
 				}
-				
+
 				result = this.runCommand(command, envp, directory);
 
 				if (ps != null) {
@@ -155,37 +133,50 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 		} catch (IOException ioe) {
 			throw new OperationException(command, "I/O error while running T-Coffee: " + command, ioe);
 		} catch (InterruptedException ie) {
-			throw new OperationException(command, "T-Coffee interrupted",ie);
+			throw new OperationException(command, "T-Coffee interrupted", ie);
 		} finally {
 			if (ps != null) {
 				ps.close();
 			}
 		}
-		
+
 		return result;
 	}
 
 	public abstract boolean isCompatibleWith(String version);
 
-	
 	public abstract int convertDNAIntoAmino(File dnaFile, File outputFile) throws OperationException;
+
 	public abstract int runAlignment(File fastaFile, AlignMethod alignMethod, File outputFile) throws OperationException;
+
 	public abstract int evaluateAlignment(File alignmentFile, File output) throws OperationException;
-	public abstract InformativePositions computeInformativePositions(File alignmentFile, File scoreFile, File consoleOutFile, int minScore) throws OperationException;
+
+	public abstract InformativePositions computeInformativePositions(File alignmentFile, File scoreFile, File consoleOutFile, int minScore)
+		throws OperationException;
+
 	public abstract int generateDivFile(File alnFile, File divFile) throws OperationException;
+
 	public abstract SequenceDiversity calculateMinDiversity(Set<SequenceDiversity> usedSequences, File file) throws OperationException;
+
 	public abstract int removeSequence(String sequenceId, File fastaFile, File newFastaFile) throws OperationException;
+
 	public abstract int runAlingment(File fastaFile, AlignMethod alignMethod, File logFile) throws OperationException;
+
 	public abstract int calculateAlignmentScore(File alnFile, File logFile) throws OperationException;
+
 	public abstract int extractSequences(Set<String> sequences, File proteinFile, File resultFile) throws OperationException;
+
 	public abstract int profile(File fastaFile, File profile, AlignMethod alignMethod, String resultsPrefix, File logFile) throws OperationException;
+
 	public abstract int convertAminoIntoDNA(File fasta, File alnFile, File outputFile) throws OperationException;
+
 	public abstract int toFastaAln(File clustal, File alnFile) throws OperationException;
-	
+
 	protected abstract int calculateI(File iInputFile, File iOutputFile, File outputFile) throws OperationException;
+
 	protected abstract int calculateS(File scoreFile, File outputFile) throws OperationException;
-	protected abstract int calculateBS(File alignmentFile, File scoreFile, File ipiFile, File outputFile, int minScore) throws OperationException; 
-	
+
+	protected abstract int calculateBS(File alignmentFile, File scoreFile, File ipiFile, File outputFile, int minScore) throws OperationException;
 
 	public static class InformativePositions {
 		public int I, S, BS;
@@ -200,7 +191,7 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 			final String[] split = seqLine.split("\t");
 			this.id = split[2].trim();
 			this.number = Integer.parseInt(split[1].trim());
-			
+
 			split[4] = split[4].trim();
 			if (split[4].equalsIgnoreCase("-nan") || split[4].equalsIgnoreCase("nan"))
 				this.average = Double.NaN;

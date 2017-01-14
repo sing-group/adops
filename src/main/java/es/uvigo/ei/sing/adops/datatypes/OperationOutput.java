@@ -25,9 +25,9 @@ import java.io.File;
 
 public interface OperationOutput {
 	public abstract int getState();
-	
+
 	public abstract File[] getResultFiles();
-	
+
 	public abstract boolean isDeleted();
 
 	public abstract void delete();

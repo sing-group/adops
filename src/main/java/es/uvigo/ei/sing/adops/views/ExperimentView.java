@@ -45,11 +45,11 @@ import javax.swing.text.DefaultCaret;
 
 import org.forester.io.parsers.util.PhylogenyParserException;
 
-import es.uvigo.ei.sing.adops.Utils;
 import es.uvigo.ei.sing.adops.datatypes.AlignmentConfidences;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.datatypes.ExperimentOutput;
 import es.uvigo.ei.sing.adops.datatypes.ProjectExperiment;
+import es.uvigo.ei.sing.adops.views.utils.ViewUtils;
 import es.uvigo.ei.sing.alter.parser.ParseException;
 import es.uvigo.ei.aibench.core.Core;
 import es.uvigo.ei.aibench.workbench.Workbench;
@@ -68,13 +68,11 @@ public class ExperimentView extends JPanel implements Observer {
 	private static final String ALIGNED_NUCL_TAB = "Aligned Nucl.";
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String OPERATION_RUN_EXPERIMENT = "es.uvigo.ei.sing.adops.operations.runexperimentbysteps";
-	
+
 	private final JTabbedPane tabResults;
 	private final ProjectExperiment experiment;
-	
-//	private boolean liveLog;
 
 	private final TextFileViewer notesViewer;
 	private JPanel logPanel;
@@ -91,31 +89,25 @@ public class ExperimentView extends JPanel implements Observer {
 
 	private AlignmentTextViewer alignmentTextViewer;
 
-//	private GenomicViewer genomicViewer;
-	
 	public ExperimentView(final ProjectExperiment experiment) {
 		super(new BorderLayout());
-		
+
 		this.experiment = experiment;
 		this.tabResults = new JTabbedPane(JTabbedPane.BOTTOM);
 		this.add(this.tabResults, BorderLayout.CENTER);
-		
-		
+
 		this.notesViewer = new TextFileViewer(this.experiment.getNotesFile());
 
 		this.notesViewer.setEditable(true);
 		this.tabResults.addTab("Notes", this.notesViewer);
 
-//		if (experiment.hasResult() && experiment.getResult().isComplete()) {
-//			this.showResult(experiment.getResult());
-//		}
 		if (experiment.hasResult()) {
 			this.showResult(experiment.getResult());
 		}
-		
+
 		experiment.addObserver(this);
 	}
-	
+
 	private synchronized void clearTabs() {
 		if (this.logPanel != null) {
 			this.tabResults.remove(this.logPanel);
@@ -162,34 +154,31 @@ public class ExperimentView extends JPanel implements Observer {
 			this.alignmentTextViewer = null;
 		}
 	}
-	
+
 	public void launchExecution(boolean showLog) throws IllegalStateException {
 		if (this.experiment.hasResult()) {
 			throw new IllegalStateException("Experiment already have results");
 		} else {
-			this.experiment.clear(); // Tabs will be cleared in the Observer.update();
-//			this.clearTabs();
-			
+			this.experiment.clear();
+			// Tabs will be cleared in the Observer.update();
+			// this.clearTabs();
+
 			final PrintStream outputStream;
-			
+
 			if (showLog) {
 				this.logPanel = new LogPanel(this.experiment);
 				this.tabResults.addTab(ExperimentView.EXECUTION_LOG_TAB, this.logPanel);
 				this.tabResults.setSelectedComponent(this.logPanel);
-				
-//				this.liveLog = true;
-				
+
 				outputStream = new PrintStream(((LogPanel) this.logPanel).getOutputStream());
-			} else {  // NO_OPTION
-//				this.liveLog = false;
-				
+			} else { // NO_OPTION
 				outputStream = null;
 			}
-			
+
 			Core.getInstance().getClipboard().putItem(outputStream, "Output Stream");
 			Workbench.getInstance().executeOperation(
-				ExperimentView.OPERATION_RUN_EXPERIMENT, 
-				null, 
+				ExperimentView.OPERATION_RUN_EXPERIMENT,
+				null,
 				Arrays.asList(experiment, false, outputStream)
 			);
 		}
@@ -199,55 +188,49 @@ public class ExperimentView extends JPanel implements Observer {
 	public void update(Observable observable, Object param) {
 		if (param instanceof ExperimentOutput) {
 			final ExperimentOutput output = (ExperimentOutput) param;
-			
+
 			if (output.isDeleted()) {
-				Utils.safeGUIRun(new Runnable() {
-					@Override
-					public void run() {
-						// All tabs except "Notes" are removed
-//						while (ExperimentView.this.tabResults.getTabCount() > 1) {
-//							ExperimentView.this.tabResults.removeTabAt(1);
-//						}
-						ExperimentView.this.clearTabs();
+				ViewUtils.safeGUIRun(
+					new Runnable() {
+						@Override
+						public void run() {
+							// All tabs except "Notes" are removed
+							ExperimentView.this.clearTabs();
+						}
 					}
-				});
+				);
 			} else {
 				if (output.isFinished()) {
 					this.experiment.storeAllProperties();
 					output.deleteObserver(this);
-					
-					Utils.safeGUIRun(new Runnable() {
-						@Override
-						public void run() {
-							ExperimentView.this.showResult(output);
+
+					ViewUtils.safeGUIRun(
+						new Runnable() {
+							@Override
+							public void run() {
+								ExperimentView.this.showResult(output);
+							}
 						}
-					});
+					);
 				} else {
-					Utils.safeGUIRun(new Runnable() {
-						@Override
-						public void run() {
-							ExperimentView.this.showResult(output);
+					ViewUtils.safeGUIRun(
+						new Runnable() {
+							@Override
+							public void run() {
+								ExperimentView.this.showResult(output);
+							}
 						}
-					});
+					);
 				}
 			}
 		} else if (observable instanceof Experiment) {
 			final Experiment exp = (Experiment) observable;
 			if (exp.isClean() && !exp.isRunning()) {
 				this.clearTabs();
-//				this.tabResults.removeAll();
-//				this.mbTreeView = null;
-//				this.logPanel = null;
-//				this.alignedNuclFileView = null;
-//				this.alignedAminoFileView = null;
-//				this.alignedProtAlnFileView = null;
-////				this.genomicViewer = null;
-//				
-//				this.tabResults.addTab("Notes", this.notesViewer);
 			}
 		}
 	}
-	
+
 	private synchronized void showResult(ExperimentOutput output) {
 		final File logFile = output.getLogFile();
 		final File alignedNucleotides = output.getRenamedAlignedFastaFile();
@@ -258,52 +241,37 @@ public class ExperimentView extends JPanel implements Observer {
 		final File codeMLOutputFile = output.getCodeMLOutputFile();
 		final File codeMLSummaryFile = output.getCodeMLSummaryFile();
 		final File outputFile = output.getSummaryFile();
-		
-		if (this.logPanel == null && logFile.exists() && 
-			!this.experiment.isRunning() //&&	this.experiment.hasResult() && this.experiment.getResult().isFinished()
+
+		if (
+			this.logPanel == null && logFile.exists() &&
+				!this.experiment.isRunning()
 		) {
-//			this.logPanel = new LogPanel(this.experiment);
 			this.logPanel = new TextFileViewer(logFile);
 			this.tabResults.addTab(ExperimentView.EXECUTION_LOG_TAB, this.logPanel);
 		}
-		
+
 		if (this.alignedProtAlnFileView == null && alignedProtAlnFile.exists()) {
 			this.alignedProtAlnFileView = new TextFileViewer(alignedProtAlnFile);
 			this.tabResults.addTab(ExperimentView.ALN_FILE_TAB, this.alignedProtAlnFileView);
 		}
-		
+
 		if (this.alignedNuclFileView == null && alignedNucleotides.exists()) {
-				this.alignedNuclFileView = new TextFileViewer(alignedNucleotides);
-				this.tabResults.addTab(ExperimentView.ALIGNED_NUCL_TAB, alignedNuclFileView);
-//				this.tabResults.setSelectedComponent(this.alignedNuclFileView);
-				
+			this.alignedNuclFileView = new TextFileViewer(alignedNucleotides);
+			this.tabResults.addTab(ExperimentView.ALIGNED_NUCL_TAB, alignedNuclFileView);
 		}
-		
+
 		if (this.alignedAminoFileView == null && alignedAminoacids.exists()) {
 			this.alignedAminoFileView = new TextFileViewer(alignedAminoacids);
 			this.tabResults.addTab(ExperimentView.ALIGNED_AMIN_TAB, alignedAminoFileView);
-//			this.tabResults.setSelectedComponent(this.alignedAminoFileView);
 		}
-//			if (this.genomicViewer == null) {
-//				try {
-//					this.genomicViewer = new GenomicViewer(new Genome(new FastaGenomeIndex(alignedNucleotides), "ADOPS"));
-//					this.genomicViewer.addTrackFile(this.createGPFile(alignedNucleotides));
-////					genomicViewer.repaintGenomicViewer();
-//					this.tabResults.addTab("Aligned Viewer", this.genomicViewer);
-//					
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-		
+
 		if (this.treeView == null && treeFile.exists()) {
 			this.treeView = new TextFileViewer(treeFile);
 			this.tabResults.addTab(ExperimentView.TREE_TAB, treeView);
 			try {
 				this.mbTreeView = new TreeView(treeFile);
 				this.tabResults.addTab(ExperimentView.TREE_VIEW_TAB, this.mbTreeView);
-//				this.tabResults.setSelectedComponent(this.mbTreeView);
+				// this.tabResults.setSelectedComponent(this.mbTreeView);
 			} catch (PhylogenyParserException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -315,26 +283,26 @@ public class ExperimentView extends JPanel implements Observer {
 			this.psrfView = new TextFileViewer(psrfFile);
 			this.tabResults.addTab(ExperimentView.PSRF_TAB, this.psrfView);
 		}
-		
+
 		if (this.codeMLOutputView == null && codeMLOutputFile.exists()) {
 			this.codeMLOutputView = new TextFileViewer(codeMLOutputFile);
 			this.tabResults.addTab(ExperimentView.CODEML_OUTPUT_TAB, this.codeMLOutputView);
 		}
-		
+
 		if (this.codeMLSummaryView == null && codeMLSummaryFile.exists()) {
 			this.codeMLSummaryView = new TextFileViewer(codeMLSummaryFile);
 			this.tabResults.addTab(ExperimentView.CODEML_SUMMARY_TAB, this.codeMLSummaryView);
 		}
-		
+
 		if (this.outputView == null && outputFile.exists()) {
 			this.outputView = new TextFileViewer(outputFile);
 			this.tabResults.addTab(ExperimentView.SUMMARY_TAB, this.outputView);
 		}
-		
+
 		try {
 			if (this.alignmentTextViewer == null) {
 				final AlignmentConfidences confidences = output.loadConfidences();
-				if (confidences != null && this.alignmentTextViewer == null /*&& !confidences.getModels().isEmpty()*/) {
+				if (confidences != null && this.alignmentTextViewer == null) {
 					this.alignmentTextViewer = new AlignmentTextViewer(confidences, output.loadScores());
 					this.tabResults.addTab(ExperimentView.PSS_TAB, this.alignmentTextViewer);
 				}
@@ -344,66 +312,48 @@ public class ExperimentView extends JPanel implements Observer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		this.tabResults.setSelectedIndex(this.tabResults.getTabCount()-1);
-//		
-//		
-//		if (output.isComplete()) {
-//			if (!this.liveLog) {
-//				this.tabResults.addTab("Execution Log", new TextFileViewer(logFile));
-//			}
-//			
-//			this.tabResults.addTab("PSRF", new TextFileViewer(psrfFile));
-//			this.tabResults.addTab("Tree", new TextFileViewer(treeFile));
-//			this.tabResults.addTab("Codeml Output", new TextFileViewer(codeMLOutputFile));
-//			this.tabResults.addTab("Codeml Summary", new TextFileViewer(codeMLSummaryFile));
-//			this.tabResults.addTab("Summary", new TextFileViewer(outputFile));
-//			try {
-//				final AlignmentConfidences confidences = output.loadConfidences();
-//				this.tabResults.addTab("PSS", new AlignmentTextViewer(confidences));
-//			} catch (ParseException e) {
-//				e.printStackTrace();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
+
+		this.tabResults.setSelectedIndex(this.tabResults.getTabCount() - 1);
 	}
-	
+
 	private final static class TextAreaOutputStream extends OutputStream {
 		private final JTextArea textArea;
 		private final BufferedOutputStream bos;
-		
+
 		private StringBuffer buffer;
-		
+
 		public TextAreaOutputStream(JTextArea textArea, OutputStream os) {
 			this.textArea = textArea;
 			this.buffer = new StringBuffer();
-			
+
 			if (os != null)
 				this.bos = new BufferedOutputStream(os);
-			else this.bos = null;
+			else
+				this.bos = null;
 		}
 
 		@Override
 		public void write(final int b) throws IOException {
 			final char c = (char) b;
-			
+
 			if (this.bos != null)
 				this.bos.write(b);
-			
+
 			this.buffer.append(c);
 			if (c == '\n') {
 				final String text = this.buffer.toString();
 				this.buffer = new StringBuffer();
-				
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						TextAreaOutputStream.this.textArea.append(text);
+
+				SwingUtilities.invokeLater(
+					new Runnable() {
+						@Override
+						public void run() {
+							TextAreaOutputStream.this.textArea.append(text);
+						}
 					}
-				});
+				);
 			}
-			
+
 		}
 
 		@Override
@@ -411,57 +361,61 @@ public class ExperimentView extends JPanel implements Observer {
 			this.bos.close();
 		}
 	}
-	
+
 	private final static class LogPanel extends JPanel implements Observer {
 		private static final long serialVersionUID = 1L;
-		
+
 		private final TextAreaOutputStream out;
 		private final JPanel topPanel;
-		
+
 		public LogPanel(ProjectExperiment experiment) {
 			this(experiment, null);
 		}
-		
+
 		public LogPanel(ProjectExperiment experiment, OutputStream out) {
 			super(new BorderLayout());
-			
+
 			this.topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-			
+
 			final JTextArea textArea = new JTextArea();
 			textArea.setLineWrap(true);
 			textArea.setWrapStyleWord(false);
 			textArea.setEditable(false);
-			textArea.setFont(new Font(
-				Font.MONOSPACED,
-				Font.PLAIN,
-				textArea.getFont().getSize()
-			));
-			
+			textArea.setFont(
+				new Font(
+					Font.MONOSPACED,
+					Font.PLAIN,
+					textArea.getFont().getSize()
+				)
+			);
+
 			final DefaultCaret caret = (DefaultCaret) textArea.getCaret();
 			caret.setUpdatePolicy(DefaultCaret.UPDATE_WHEN_ON_EDT);
-			
+
 			final JCheckBox chkAutoScroll = new JCheckBox("Auto scroll", true);
-			chkAutoScroll.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent event) {
-					if (chkAutoScroll.isSelected()) {
-						textArea.setCaretPosition(textArea.getDocument().getLength());
-						caret.setUpdatePolicy(DefaultCaret.UPDATE_WHEN_ON_EDT);
-					} else {
-						caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+			chkAutoScroll.addActionListener(
+				new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent event) {
+						if (chkAutoScroll.isSelected()) {
+							textArea.setCaretPosition(textArea.getDocument().getLength());
+							caret.setUpdatePolicy(DefaultCaret.UPDATE_WHEN_ON_EDT);
+						} else {
+							caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+						}
 					}
 				}
-			});
-			
+			);
+
 			this.topPanel.add(chkAutoScroll);
-			
+
 			this.add(this.topPanel, BorderLayout.NORTH);
 			this.add(new JScrollPane(textArea), BorderLayout.CENTER);
-			
+
 			this.out = new TextAreaOutputStream(textArea, out);
 			experiment.addObserver(this);
 		}
-		
+
 		public TextAreaOutputStream getOutputStream() {
 			return this.out;
 		}
@@ -470,63 +424,19 @@ public class ExperimentView extends JPanel implements Observer {
 		public void update(Observable o, Object arg) {
 			if (o instanceof ProjectExperiment) {
 				final ProjectExperiment experiment = (ProjectExperiment) o;
-				
+
 				if (experiment.hasResult() && experiment.getResult().isFinished()) {
-					Utils.safeGUIRun(new Runnable() {
-						@Override
-						public void run() {
-							LogPanel.this.remove(LogPanel.this.topPanel);
-							experiment.deleteObserver(LogPanel.this);
+					ViewUtils.safeGUIRun(
+						new Runnable() {
+							@Override
+							public void run() {
+								LogPanel.this.remove(LogPanel.this.topPanel);
+								experiment.deleteObserver(LogPanel.this);
+							}
 						}
-					});
+					);
 				}
 			}
 		}
 	}
-	
-//	private File createGPFile(File alignmentFile) throws ParseException, IOException {
-//		final DefaultFactory factory = new DefaultFactory();
-////		final Reader reader = factory.getReader("linux", "clustal", "fasta", false, "logger");
-//		final Reader reader = factory.getReader(null, null, null, true, "logger");
-//		
-//		final MSA msa = reader.read(FileUtils.readFileToString(alignmentFile));
-//		final Sequence[] sequences = new Sequence[msa.getSeqs().size()];
-//		int i = 0;
-//		for (Object seq : msa.getSeqs()) {
-//			sequences[i++] = (Sequence) seq;
-//		}
-//		
-//		final File gpFile = File.createTempFile("example_", ".gp");
-//		gpFile.deleteOnExit();
-//		PrintWriter pw = null;
-//		
-//		try {
-//			pw = new PrintWriter(gpFile);
-//			
-////			for (int j = 0; j < sequences.length; j++) {
-////				final Sequence currentSeq = sequences[j];
-////				
-//			Random random = new Random(this.experiment.hashCode());
-//			for (int k = 0; k < sequences.length; k++) {
-//				final Sequence currentSeq = sequences[k];
-//				
-//				for (int j = 0; j < currentSeq.getData().length(); j++) {
-//					if (random.nextDouble() > 0.9d) {
-//						pw.print(currentSeq.getId());
-//						pw.print('\t');
-//						pw.print(j);
-//						pw.print('\t');
-//						pw.println(currentSeq.getData().charAt(j));
-//					}
-//				}
-//			}
-////			}
-//		} finally {
-//			if (pw != null) 
-//				pw.close();
-//		}
-//		
-//		
-//		return gpFile;
-//	}
 }

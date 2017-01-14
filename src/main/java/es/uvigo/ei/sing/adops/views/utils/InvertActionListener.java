@@ -29,24 +29,24 @@ import javax.swing.JList;
 
 public class InvertActionListener implements ActionListener {
 	private final JList<?> list;
-	
+
 	public InvertActionListener(JList<?> list) {
 		super();
 		this.list = list;
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		final int[] selectedIndices = this.list.getSelectedIndices();
 		final int[] newSelectedIndices = new int[this.list.getModel().getSize() - selectedIndices.length];
-		
+
 		int index = 0;
 		for (int i = 0; i < this.list.getModel().getSize(); i++) {
 			if (Arrays.binarySearch(selectedIndices, i) < 0) {
 				newSelectedIndices[index++] = i;
 			}
 		}
-		
+
 		this.list.setSelectedIndices(newSelectedIndices);
 	}
 }

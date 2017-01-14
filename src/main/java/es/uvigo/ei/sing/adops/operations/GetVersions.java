@@ -30,25 +30,24 @@ public class GetVersions {
 	public static String getTCoffeeVersion(String binPath) throws IOException {
 		try {
 			Process process = Runtime.getRuntime().exec(binPath + " -version");
-			
-			BufferedReader procBR = new BufferedReader (new InputStreamReader(process.getInputStream()));
+
+			BufferedReader procBR = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			String versionLine = procBR.readLine();
-	
+
 			process.destroy();
-			
+
 			final int versionIndex = versionLine.indexOf("Version");
 			if (versionIndex >= 0) {
 				final String versionSubstring = versionLine.substring(versionIndex + 8);
 				final int spaceIndex = versionSubstring.indexOf(' ');
 				final int parenIndex = versionSubstring.indexOf(')');
-				final int index = spaceIndex < 0 || parenIndex < 0 ? 
-					Math.max(spaceIndex, parenIndex):Math.min(spaceIndex, parenIndex);
-				
+				final int index = spaceIndex < 0 || parenIndex < 0 ? Math.max(spaceIndex, parenIndex) : Math.min(spaceIndex, parenIndex);
+
 				if (index < 0)
 					throw new IOException("Missing version");
 				else
 					return versionSubstring.substring(0, index);
-	
+
 			} else {
 				throw new IOException("Missing program");
 			}
@@ -62,17 +61,16 @@ public class GetVersions {
 			File tmpFile = File.createTempFile("ver", null);
 			tmpFile.deleteOnExit();
 			Process process = Runtime.getRuntime().exec(binPath + " " + tmpFile.getAbsolutePath());
-			
-			BufferedReader procBR = new BufferedReader (new InputStreamReader(process.getInputStream()));
-			
-			
+
+			BufferedReader procBR = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
 			String versionLine = null;
 			do {
 				versionLine = procBR.readLine();
 			} while (versionLine != null && !versionLine.contains("MrBayes v"));
-				
+
 			process.destroy();
-	
+
 			if (versionLine != null) {
 				return versionLine.substring(versionLine.indexOf(" v") + 2);
 			} else {
@@ -88,15 +86,15 @@ public class GetVersions {
 			File tmpFile = File.createTempFile("ver", null);
 			tmpFile.deleteOnExit();
 			Process process = Runtime.getRuntime().exec(binPath + " " + tmpFile.getAbsolutePath());
-			
-			BufferedReader procBR = new BufferedReader (new InputStreamReader(process.getInputStream()));
-			
-			String versionLine=procBR.readLine();
-				
+
+			BufferedReader procBR = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+			String versionLine = procBR.readLine();
+
 			process.destroy();
-	
+
 			if (versionLine.contains("version ")) {
-				return versionLine.substring(versionLine.indexOf("version ")+8,versionLine.indexOf(","));		
+				return versionLine.substring(versionLine.indexOf("version ") + 8, versionLine.indexOf(","));
 			} else {
 				throw new IOException("Missing program");
 			}
@@ -104,25 +102,5 @@ public class GetVersions {
 			throw new IOException("Missing program");
 		}
 	}
-//	
-//	private static String runCommand (String binPath) throws IOException {
-//		File tmpFile = File.createTempFile(null,null);
-//		tmpFile.deleteOnExit();
-//		
-//		Process process = Runtime.getRuntime().exec(binPath + " " + tmpFile.getAbsolutePath());
-//		
-//		BufferedReader procBR = new BufferedReader (new InputStreamReader(process.getInputStream()));
-//		
-//		String versionString=procBR.readLine();
-//		
-//		process.destroy();
-//		
-//		return versionString;
-//	}
-//
-//	public static void main(String[] args) throws IOException {
-//		System.out.println("T-Coffee: '" + getTCoffeeVersion("t_coffee") + "'");
-//		System.out.println("MrBayes: '" + getMrBayesVersion("/home/david/mrbayes/mb") + "'");
-//		System.out.println("CodeML: '" + getCodeMLVersion("/home/david/paml/codeml") + "'");
-//	}
+
 }

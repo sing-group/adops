@@ -22,6 +22,7 @@
 package es.uvigo.ei.sing.adops.views.utils;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import es.uvigo.ei.aibench.core.Core;
@@ -29,35 +30,36 @@ import es.uvigo.ei.aibench.core.clipboard.ClipboardItem;
 import es.uvigo.ei.aibench.core.clipboard.ClipboardListener;
 
 public class ClipboardBasedOperationActivator implements ClipboardListener {
-	private final HashMap<String, HashMap<Class<?>, Integer>> operationRequirements = 
-		new HashMap<String, HashMap<Class<?>, Integer>>();
+	private final HashMap<String, Map<Class<?>, Integer>> operationRequirements;
+	
+	public ClipboardBasedOperationActivator() {
+		this.operationRequirements = new HashMap<>();
+	}
+	
 
 	public void addRequirement(String uid, Class<?> c) {
 		this.addRequirement(uid, c, 1);
 	}
-	
+
 	public void addRequirement(String uid, Class<?> c, int count) {
-		HashMap<Class<?>, Integer> reqs = this.operationRequirements.get(uid);
-		
-		if (reqs == null) {
-			reqs = new HashMap<Class<?>, Integer>();
-			operationRequirements.put(uid, reqs);
+		if (!this.operationRequirements.containsKey(uid)) {
+			this.operationRequirements.put(uid, new HashMap<Class<?>, Integer>());
 		}
 		
-		reqs.put(c, count);
+		this.operationRequirements.get(uid).put(c, count);
 	}
 
 	private void processClipboard() {
 		for (String uid : this.operationRequirements.keySet()) {
 			boolean requirementsSatisfied = true;
-			
+
 			for (Entry<Class<?>, Integer> c : this.operationRequirements.get(uid).entrySet()) {
 				if (Core.getInstance().getClipboard().getItemsByClass(c.getKey()).size() < c.getValue()) {
 					requirementsSatisfied = false;
 					break;
 				}
 			}
-			
+
 			if (requirementsSatisfied) {
 				Core.getInstance().enableOperation(uid);
 			} else {

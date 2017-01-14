@@ -21,6 +21,8 @@
  */
 package es.uvigo.ei.sing.adops.datatypes;
 
+import static java.util.Collections.emptySet;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -30,21 +32,21 @@ import java.util.Set;
 public abstract class AbstractOperationOutput extends Observable implements OperationOutput {
 	private int state;
 	protected boolean deleted;
-	
+
 	public AbstractOperationOutput(int state) {
 		this.state = state;
 		this.deleted = false;
 	}
-	
+
 	@Override
 	public int getState() {
 		return this.state;
 	}
-	
+
 	public void setState(int state) {
 		this.state = state;
 	}
-	
+
 	@Override
 	public boolean isDeleted() {
 		return this.deleted;
@@ -57,36 +59,39 @@ public abstract class AbstractOperationOutput extends Observable implements Oper
 				if (file != null && file.exists())
 					file.delete();
 			}
-			
+
 			this.deleted = true;
-			
+
 			this.setChanged();
 			this.notifyObservers();
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public File[] getResultFiles() {
 		final Set<File> files = new HashSet<File>();
 		final Class<? extends AbstractOperationOutput> currentClass = this.getClass();
-		
+
 		for (Method method : currentClass.getMethods()) {
 			final String methodName = method.getName();
 			final Class<?>[] parameters = method.getParameterTypes();
 			final Class<?> returnType = method.getReturnType();
-			
+
 			if (methodName.startsWith("get") && parameters.length == 0) {
-				if (methodName.endsWith("File") &&
-					returnType.equals(File.class)
+				if (
+					methodName.endsWith("File") &&
+						returnType.equals(File.class)
 				) {
 					try {
 						files.add((File) method.invoke(this));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				} else if (methodName.endsWith("Files") &&
-					returnType.isAssignableFrom(Set.class)) {
+				} else if (
+					methodName.endsWith("Files") &&
+						returnType.isAssignableFrom(Set.class)
+				) {
 					try {
 						files.addAll((Set<File>) method.invoke(this));
 					} catch (Exception e) {
@@ -95,21 +100,22 @@ public abstract class AbstractOperationOutput extends Observable implements Oper
 				}
 			}
 		}
-		
+
 		files.removeAll(this.getIgnoredFiles());
-		
+
 		return files.toArray(new File[files.size()]);
 	}
-	
+
 	protected Set<File> getIgnoredFiles() {
-		return new HashSet<File>();
+		return emptySet();
 	}
-	
+
 	public boolean isComplete() {
 		for (File file : this.getResultFiles()) {
-			if (file == null || !file.exists()) return false;
+			if (file == null || !file.exists())
+				return false;
 		}
-		
+
 		return true;
 	}
 }

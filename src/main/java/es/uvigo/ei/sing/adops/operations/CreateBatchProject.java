@@ -29,69 +29,39 @@ import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.BatchProject;
 
-@Operation(
-	name = "Create Batch Project",
-	description = "A batch project allows you to run an experiments on several FASTA files."
-)
+@Operation(name = "Create Batch Project", description = "A batch project allows you to run an experiments on several FASTA files.")
 public class CreateBatchProject {
 	private File configuration;
 	private File[] fastaFiles;
 	private boolean copyFastaFiles;
 	private File folder;
-	
-	@Port(
-		name = "Project Folder",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Folder that will contain the project files."
-	)
+
+	@Port(name = "Project Folder", order = 1, direction = Direction.INPUT, allowNull = false, description = "Folder that will contain the project files.")
 	public void setFolder(File folder) {
 		this.folder = folder;
 	}
-	
-	@Port(
-		name = "Base Configuration",
-		order = 2,
-		direction = Direction.INPUT,
-		allowNull = true,
-		description = "This configuration will be used to run ADOPS over each fasta file. (Optional)"
-	)
+
+	@Port(name = "Base Configuration", order = 2, direction = Direction.INPUT, allowNull = true, description = "This configuration will be used to run ADOPS over each fasta file. (Optional)")
 	public void setConfiguration(File configuration) {
 		this.configuration = configuration;
 	}
 
-	@Port(
-		name = "FASTA File",
-		order = 3,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Input FASTA file for the experiments"
-	)
+	@Port(name = "FASTA File", order = 3, direction = Direction.INPUT, allowNull = false, description = "Input FASTA file for the experiments")
 	public void setFastaFiles(File[] fastaFiles) {
 		this.fastaFiles = fastaFiles;
 	}
-	
-	@Port(
-		name = "Copy FASTA Files",
-		order = 4,
-		direction = Direction.INPUT,
-		defaultValue = "true",
-		allowNull = false,
-		description = "Whether to copy the FASTA files into the project folder"
-	)
+
+	@Port(name = "Copy FASTA Files", order = 4, direction = Direction.INPUT, defaultValue = "true", allowNull = false, description = "Whether to copy the FASTA files into the project folder")
 	public void setCopyFastaFiles(boolean copyFastaFiles) {
 		this.copyFastaFiles = copyFastaFiles;
 	}
-	
-	@Port(
-		direction = Direction.OUTPUT, 
-		order = 1000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 1000)
 	public BatchProject create() throws IOException, IllegalArgumentException {
-		if (this.configuration == null) 
+		if (this.configuration == null)
 			return new BatchProject(this.folder, this.fastaFiles, !this.copyFastaFiles);
 		else
 			return new BatchProject(this.folder, this.configuration, this.fastaFiles, !this.copyFastaFiles);
 	}
+	
 }

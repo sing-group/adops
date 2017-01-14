@@ -29,18 +29,12 @@ import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.BatchProject;
 
-@Operation(
-	name = "Load Batch Project",
-	description = "Loads a batch project"
-)
+@Operation(name = "Load Batch Project", description = "Loads a batch project")
 public class LoadBatchProject {
-	@Port(
-		name = "Batch Project Folder",
-		direction = Direction.BOTH,
-		order = 1,
-		description = "Folder that contains the batch project files"
-	)
+	
+	@Port(name = "Batch Project Folder", direction = Direction.BOTH, order = 1, description = "Folder that contains the batch project files")
 	public BatchProject loadProject(File folder) throws IllegalArgumentException, IOException {
 		return new BatchProject(folder);
 	}
+	
 }

@@ -35,109 +35,82 @@ import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
 import es.uvigo.ei.sing.adops.operations.running.ProcessOperation;
 
-@Operation (name="CodeML")
-public class CodeMLOperation extends ProcessOperation<CodeMLProcessManager, CodeMLConfiguration, CodeMLOutput>{
+@Operation(name = "CodeML")
+public class CodeMLOperation extends ProcessOperation<CodeMLProcessManager, CodeMLConfiguration, CodeMLOutput> {
 	private final static Logger LOGGER = Logger.getLogger(CodeMLOperation.class);
-	
+
 	private File consFile;
 
 	public CodeMLOperation() {
 		super(CodeMLConfiguration.class);
 	}
-	
+
 	@Override
 	protected Logger getLogger() {
 		return CodeMLOperation.LOGGER;
 	}
-	
-	@Port(
-		name = "FASTA File",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false
-	)
+
+	@Port(name = "FASTA File", order = 1, direction = Direction.INPUT, allowNull = false)
 	public void setInputFile(File fastaFile) {
 		super.setInputFile(fastaFile);
 	}
 
-	@Port(
-		name = "con File",
-		order = 2,
-		direction = Direction.INPUT,
-		allowNull = false
-	)
+	@Port(name = "con File", order = 2, direction = Direction.INPUT, allowNull = false)
 	public void setConsFile(File f) {
 		this.consFile = f;
 	}
 
-	@Port(
-		name = "Output Folder",
-		order = 3,
-		direction = Direction.INPUT,
-		allowNull = false
-	)
+	@Port(name = "Output Folder", order = 3, direction = Direction.INPUT, allowNull = false)
 	public void setOutputFolder(File outputFolder) {
 		super.setOutputFolder(outputFolder);
 	}
 
-	@Port(
-		name = "Use Std. Output",
-		order = 4,
-		direction = Direction.INPUT,
-		defaultValue = "true"
-	)
+	@Port(name = "Use Std. Output", order = 4, direction = Direction.INPUT, defaultValue = "true")
 	public void setUseStdOutput(boolean useStdOutput) {
-		if (useStdOutput) 
+		if (useStdOutput)
 			this.addPrintStream(System.out);
 		else
 			this.removePrintStream(System.out);
 	}
 
-	@Port(
-	    direction = Direction.OUTPUT,
-	    order = 1000
-	)
+	@Port(direction = Direction.OUTPUT, order = 1000)
 	@Override
 	public CodeMLOutput call() throws OperationException, InterruptedException {
 		final CodeMLOutput output = new CodeMLOutput(this.getInputFile(), this.getOutputFolder());
 		this.process = CodeMLProcessManager.createManager(this.configuration);
-		
+
 		for (PrintStream ps : this.getPrintStreams()) {
 			this.process.addPrinter(ps);
 		}
-		
+
 		try {
-			
+
 			this.checkInterrupted();
-			
+
 			// Step 1 - Get paml-nexus file from FASTA input
 			this.process.createNexusFile(this.getInputFile(), output.getNexusFile());
-			
+
 			// Step 2 - Build tree from .cons file
 			this.process.createTreeFile(output.getTreeFile(), this.consFile);
-	
+
 			this.checkInterrupted();
 			// Step 3 - Launch CodeML
 			this.process.createCodeMLFile(output.getNexusFile(), output.getTreeFile(), output.getCodeMLCtlFile(), output.getOutputFile());
-	
-	        this.checkInterrupted();
-	        
-	        this.process.executeCodeMLFile(output.getCodeMLCtlFile(), output.getLogFile());
-	        
-	        this.checkInterrupted();
-			
+
+			this.checkInterrupted();
+
+			this.process.executeCodeMLFile(output.getCodeMLCtlFile(), output.getLogFile());
+
+			this.checkInterrupted();
+
 			this.println("CodeML output code: " + output.getState());
-			
+
 			this.checkInterrupted();
-			
+
 			this.process.buildSummary(output.getOutputFile(), output.getSummaryFile());
-			
+
 			this.checkInterrupted();
-			
-			//process.moveOutputFiles(output);
-			
-			//this.checkInterrupted();
-			
+
 			return output;
 		} catch (OperationException oe) {
 			if (oe.getCause() instanceof InterruptedException) {
@@ -147,10 +120,9 @@ public class CodeMLOperation extends ProcessOperation<CodeMLProcessManager, Code
 			}
 		}
 	}
-	
+
 	@Override
 	protected void configureExperiment(Experiment experiment) {
-//		this.setInputFile(experiment.getAlignedFastaFile());
 		this.setInputFile(experiment.getResult().getTCoffeeOutput().getAlignmentFile());
 		this.setOutputFolder(experiment.getFilesFolder());
 	}

@@ -33,60 +33,41 @@ import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.datatypes.ProjectExperiment;
 
-@Operation(
-	name = "Copy Experiment",
-	description = "Creates a new experiment from another one within the same project"
-)
+@Operation(name = "Copy Experiment", description = "Creates a new experiment from another one within the same project")
 public class CopyExperiment {
+	private ProjectExperiment experiment;
+	private String name;
 
-	ProjectExperiment experiment;
-	String name;
-	
-	@Port(
-		name = "Experiment",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Source Experiment"
-	)
+	@Port(name = "Experiment", order = 1, direction = Direction.INPUT, allowNull = false, description = "Source Experiment")
 	public void setExperiment(ProjectExperiment experiment) {
 		this.experiment = experiment;
 	}
 
-	@Port(
-		name = "Name",
-		order = 2,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "New Name"
-	)
+	@Port(name = "Name", order = 2, direction = Direction.INPUT, allowNull = false, description = "New Name")
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@Port(
-		order = 3,
-		direction = Direction.OUTPUT
-	)
+	@Port(order = 3, direction = Direction.OUTPUT)
 	public Experiment copyExperiment() throws IOException, IllegalArgumentException {
-		final File newFolder = new File (this.experiment.getFolder().getParentFile(), this.name);
-		
+		final File newFolder = new File(this.experiment.getFolder().getParentFile(), this.name);
+
 		if (newFolder.exists())
 			throw new FileExistsException("New experiment folder already exists (" + newFolder + ")");
-		
-		if (!(new File(newFolder, this.experiment.getFilesFolder().getName()).mkdirs())) 
+
+		if (!(new File(newFolder, this.experiment.getFilesFolder().getName()).mkdirs()))
 			throw new IOException("Error writing in new folder (" + newFolder + ")");
-		
+
 		FileUtils.copyFile(
 			this.experiment.getPropertiesFile(),
-			new File(newFolder,this.experiment.getPropertiesFile().getName())
+			new File(newFolder, this.experiment.getPropertiesFile().getName())
 		);
 		FileUtils.copyFile(
 			this.experiment.getNotesFile(),
-			new File(newFolder,this.experiment.getNotesFile().getName())
+			new File(newFolder, this.experiment.getNotesFile().getName())
 		);
-		
+
 		return new ProjectExperiment(this.experiment.getProject(), newFolder);
 	}
-	
+
 }

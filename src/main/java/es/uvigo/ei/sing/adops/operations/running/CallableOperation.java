@@ -41,14 +41,14 @@ public abstract class CallableOperation<V> implements Callable<V> {
 	private final Set<File> generatedFiles;
 	private final List<PrintStream> outputStreams;
 	private File outputFolder;
-	
+
 	private boolean isInterrupted = false;
 
 	public CallableOperation() {
 		super();
 
-		this.generatedFiles = new HashSet<File>();
-		this.outputStreams = new LinkedList<PrintStream>();
+		this.generatedFiles = new HashSet<>();
+		this.outputStreams = new LinkedList<>();
 	}
 
 	protected Logger getLogger() {
@@ -101,7 +101,7 @@ public abstract class CallableOperation<V> implements Callable<V> {
 			return this.outputStreams.add(ps);
 		}
 	}
-	
+
 	public List<PrintStream> getPrintStreams() {
 		return Collections.unmodifiableList(this.outputStreams);
 	}
@@ -139,13 +139,13 @@ public abstract class CallableOperation<V> implements Callable<V> {
 			this.generatedFiles.remove(file);
 		}
 	}
-	
+
 	protected void clearWhenInterrupted() {
 		this.isInterrupted = false;
 	}
-	
+
 	protected void clearWhenException() {
-		
+
 	}
 
 	protected void checkInterrupted() throws InterruptedException {
@@ -153,32 +153,30 @@ public abstract class CallableOperation<V> implements Callable<V> {
 			throw new InterruptedException();
 		}
 	}
-	
+
 	@Override
 	public V call() throws OperationException {
 		if (!this.getOutputFolder().isDirectory() && !this.getOutputFolder().mkdirs()) {
 			throw new OperationException("", "Output folder does not exist and can not be created");
 		}
-		
+
 		try {
 			return this.internalCall();
 		} catch (InterruptedException ie) {
 			this.clearWhenInterrupted();
-			
+
 			return null;
 		} catch (OperationException oe) {
 			this.clearWhenException();
-			
+
 			throw oe;
 		}
 	}
-	
+
 	protected abstract V internalCall() throws InterruptedException, OperationException;
 
 	@Cancel
 	public void cancel() {
-//		if (this.currentThread != null)
-//			this.currentThread.interrupt();
 		this.isInterrupted = true;
 	}
 

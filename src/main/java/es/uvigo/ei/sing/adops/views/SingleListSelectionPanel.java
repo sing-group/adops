@@ -59,13 +59,13 @@ public class SingleListSelectionPanel<T> extends ListSelectionPanel {
 		gbcRight.gridx = 2;
 		gbcRight.weightx = 0.5d;
 		gbcRight.weighty = 1d;
-		
-		this.lmSelected = new CustomListModel<T>(new Vector<T>(values));
-		this.lmUnselected = new CustomListModel<T>(new Vector<T>());
-		
+
+		this.lmSelected = new CustomListModel<>(new Vector<>(values));
+		this.lmUnselected = new CustomListModel<>(new Vector<T>());
+
 		this.listSelected = new JList<>(this.lmSelected);
 		this.listUnselected = new JList<>(this.lmUnselected);
-		
+
 		final JLabel lblSelected = new JLabel(selectedTitle);
 		final JLabel lblUnselected = new JLabel(unselectedTitle);
 		lblUnselected.setFont(lblUnselected.getFont().deriveFont(Font.BOLD));
@@ -74,7 +74,7 @@ public class SingleListSelectionPanel<T> extends ListSelectionPanel {
 		final Border border = BorderFactory.createEmptyBorder(4, 4, 4, 4);
 		lblUnselected.setBorder(border);
 		lblSelected.setBorder(border);
-		
+
 		final JPanel panelUnselected = new JPanel(new BorderLayout());
 		final JPanel panelUnselectedButtons = createSelectionPanel(listUnselected);
 		final JPanel panelCenter = createButtonsPanel(
@@ -87,29 +87,28 @@ public class SingleListSelectionPanel<T> extends ListSelectionPanel {
 		panelCenter.setOpaque(false);
 		panelSelected.setOpaque(false);
 		panelSelectedButtons.setOpaque(false);
-		
+
 		panelUnselected.add(lblUnselected, BorderLayout.NORTH);
 		panelUnselected.add(new JScrollPane(listUnselected), BorderLayout.CENTER);
 		panelUnselected.add(panelUnselectedButtons, BorderLayout.SOUTH);
-		
+
 		panelSelected.add(lblSelected, BorderLayout.NORTH);
 		panelSelected.add(new JScrollPane(listSelected), BorderLayout.CENTER);
 		panelSelected.add(panelSelectedButtons, BorderLayout.SOUTH);
-		
+
 		this.add(panelUnselected, gbcLeft);
 		this.add(panelCenter, gbcCenter);
 		this.add(panelSelected, gbcRight);
-		
-		final ListModelChangedEventListener listModelChangedEventListener = 
-			new ListModelChangedEventListener(this);
+
+		final ListModelChangedEventListener listModelChangedEventListener = new ListModelChangedEventListener(this);
 		this.lmSelected.addListDataListener(listModelChangedEventListener);
 		this.lmUnselected.addListDataListener(listModelChangedEventListener);
 	}
-	
+
 	public List<T> getSelectedValues() {
 		return this.lmSelected.getValues();
 	}
-	
+
 	public List<T> getUnselectedValues() {
 		return this.lmUnselected.getValues();
 	}

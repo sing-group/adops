@@ -29,20 +29,12 @@ import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.Project;
 
-@Operation(
-	name = "Load Project",
-	description = "Loads a project"
-)
+@Operation(name = "Load Project", description = "Loads a project")
 public class LoadProject {
-	@Port(
-		name = "Project Folder",
-		direction = Direction.BOTH,
-		order = 1,
-		description = "Folder that contains the project files"
-	)
+	
+	@Port(name = "Project Folder", direction = Direction.BOTH, order = 1, description = "Folder that contains the project files")
 	public Project loadProject(File folder) throws IllegalArgumentException, IOException {
-		final Project project = new Project(folder);
-		System.out.println("PROJECT");
-		return project;
+		return new Project(folder);
 	}
+	
 }

@@ -31,93 +31,101 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 public class DraggableJTabbedPane extends JTabbedPane {
 	private static final long serialVersionUID = 1L;
-	
+
 	private boolean dragging = false;
 	private Image tabImage = null;
 	private Point currentMouseLocation = null;
 	private int draggedTabIndex = 0;
 
 	public DraggableJTabbedPane() {
-		super();
-		this.addMouseMotionListener(new MouseMotionAdapter() {
-			public void mouseDragged(MouseEvent e) {
-				if (!dragging) {
-					// Gets the tab index based on the mouse position
-					int tabNumber = getUI().tabForCoordinate(
-						DraggableJTabbedPane.this, e.getX(), e.getY()
-					);
+		this.addMouseMotionListener(
+			new MouseMotionAdapter() {
+				public void mouseDragged(MouseEvent e) {
+					if (!dragging) {
+						// Gets the tab index based on the mouse position
+						int tabNumber = getUI().tabForCoordinate(
+							DraggableJTabbedPane.this, e.getX(), e.getY()
+						);
 
-					if (tabNumber >= 0) {
-						draggedTabIndex = tabNumber;
-						Rectangle bounds = getUI().getTabBounds(
-								DraggableJTabbedPane.this, tabNumber);
+						if (tabNumber >= 0) {
+							draggedTabIndex = tabNumber;
+							Rectangle bounds = getUI().getTabBounds(
+								DraggableJTabbedPane.this, tabNumber
+							);
 
-						// Paint the tabbed pane to a buffer
-						Image totalImage = new BufferedImage(getWidth(),
-								getHeight(), BufferedImage.TYPE_INT_ARGB);
-						Graphics totalGraphics = totalImage.getGraphics();
-						totalGraphics.setClip(bounds);
-						// Don't be double buffered when painting to a static
-						// image.
-						setDoubleBuffered(false);
-						paintComponent(totalGraphics);
+							// Paint the tabbed pane to a buffer
+							Image totalImage = new BufferedImage(
+								getWidth(),
+								getHeight(), BufferedImage.TYPE_INT_ARGB
+							);
+							Graphics totalGraphics = totalImage.getGraphics();
+							totalGraphics.setClip(bounds);
+							// Don't be double buffered when painting to a
+							// static
+							// image.
+							setDoubleBuffered(false);
+							paintComponent(totalGraphics);
 
-						// Paint just the dragged tab to the buffer
-						tabImage = new BufferedImage(bounds.width,
-								bounds.height, BufferedImage.TYPE_INT_ARGB);
-						Graphics graphics = tabImage.getGraphics();
-						graphics.drawImage(totalImage, 0, 0, bounds.width,
-								bounds.height, bounds.x, bounds.y, bounds.x
-										+ bounds.width, bounds.y
-										+ bounds.height,
-								DraggableJTabbedPane.this);
+							// Paint just the dragged tab to the buffer
+							tabImage = new BufferedImage(
+								bounds.width,
+								bounds.height, BufferedImage.TYPE_INT_ARGB
+							);
+							Graphics graphics = tabImage.getGraphics();
+							graphics.drawImage(
+								totalImage, 0, 0, bounds.width,
+								bounds.height, bounds.x, bounds.y,
+								bounds.x + bounds.width,
+								bounds.y + bounds.height,
+								DraggableJTabbedPane.this
+							);
 
-						dragging = true;
+							dragging = true;
+							repaint();
+						}
+					} else {
+						currentMouseLocation = e.getPoint();
+
+						// Need to repaint
 						repaint();
 					}
-				} else {
-					currentMouseLocation = e.getPoint();
 
-					// Need to repaint
-					repaint();
+					super.mouseDragged(e);
 				}
-
-				super.mouseDragged(e);
 			}
-		});
+		);
 
-		addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
+		addMouseListener(
+			new MouseAdapter() {
+				public void mouseReleased(MouseEvent e) {
 
-				if (dragging) {
-					int tabNumber = getUI().tabForCoordinate(
-							DraggableJTabbedPane.this, e.getX(), 10);
+					if (dragging) {
+						int tabNumber = getUI().tabForCoordinate(
+							DraggableJTabbedPane.this, e.getX(), 10
+						);
 
-					if (tabNumber >= 0) {
-						Component comp = getComponentAt(draggedTabIndex);
-						Component tabComponent = getTabComponentAt(draggedTabIndex);
-//						String title = getTitleAt(draggedTabIndex);
-						removeTabAt(draggedTabIndex);
-//						insertTab(title, null, comp, null, tabNumber);
-						insertTab(null, null, comp, null, tabNumber);
-						setTabComponentAt(tabNumber, tabComponent);
+						if (tabNumber >= 0) {
+							Component comp = getComponentAt(draggedTabIndex);
+							Component tabComponent = getTabComponentAt(draggedTabIndex);
+							// String title = getTitleAt(draggedTabIndex);
+							removeTabAt(draggedTabIndex);
+							// insertTab(title, null, comp, null, tabNumber);
+							insertTab(null, null, comp, null, tabNumber);
+							setTabComponentAt(tabNumber, tabComponent);
+						}
 					}
-				}
 
-				dragging = false;
-				tabImage = null;
-				
-				DraggableJTabbedPane.this.repaint();
+					dragging = false;
+					tabImage = null;
+
+					DraggableJTabbedPane.this.repaint();
+				}
 			}
-		});
+		);
 	}
 
 	protected void paintComponent(Graphics g) {
@@ -130,20 +138,22 @@ public class DraggableJTabbedPane extends JTabbedPane {
 		}
 	}
 
-	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
-		UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-		
-		JFrame test = new JFrame("Tab test");
-		test.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		test.setSize(400, 400);
-
-		DraggableJTabbedPane tabs = new DraggableJTabbedPane();
-		tabs.addTab("One", new JButton("One"));
-		tabs.addTab("Two", new JButton("Two"));
-		tabs.addTab("Three", new JButton("Three"));
-		tabs.addTab("Four", new JButton("Four"));
-
-		test.add(tabs);
-		test.setVisible(true);
-	}
+	// public static void main(String[] args) throws ClassNotFoundException,
+	// InstantiationException, IllegalAccessException,
+	// UnsupportedLookAndFeelException {
+	// UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+	//
+	// JFrame test = new JFrame("Tab test");
+	// test.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	// test.setSize(400, 400);
+	//
+	// DraggableJTabbedPane tabs = new DraggableJTabbedPane();
+	// tabs.addTab("One", new JButton("One"));
+	// tabs.addTab("Two", new JButton("Two"));
+	// tabs.addTab("Three", new JButton("Three"));
+	// tabs.addTab("Four", new JButton("Four"));
+	//
+	// test.add(tabs);
+	// test.setVisible(true);
+	// }
 }

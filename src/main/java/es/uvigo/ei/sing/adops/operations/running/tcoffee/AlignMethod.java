@@ -22,26 +22,26 @@
 package es.uvigo.ei.sing.adops.operations.running.tcoffee;
 
 public enum AlignMethod {
-	CLUSTALW	("clustalw",	"-method=clustalw_msa"),
-	CLUSTALW2	("clustalw2",	"-method=clustalw2_msa"),
-	MUSCLE		("muscle",		"-method=muscle_msa"),
-	EXPRESSO	("expresso",	"-mode=expresso"),
-	T_COFFEE	("t_coffee",	""),
-	MULTIPLE	("multiple",	"-method=clustalw2_msa,kalign_msa,t_coffee_msa,mafft_msa,muscle_msa,pcma_msa"),
-	ACCURATE	("accurate",	"-mode=accurate");
-	
+	CLUSTALW("clustalw", "-method=clustalw_msa"),
+	CLUSTALW2("clustalw2", "-method=clustalw2_msa"),
+	MUSCLE("muscle", "-method=muscle_msa"),
+	EXPRESSO("expresso", "-mode=expresso"),
+	T_COFFEE("t_coffee", ""),
+	MULTIPLE("multiple", "-method=clustalw2_msa,kalign_msa,t_coffee_msa,mafft_msa,muscle_msa,pcma_msa"),
+	ACCURATE("accurate", "-mode=accurate");
+
 	private String name, tcoffeeString;
-	
-	private AlignMethod (String name, String tcoffeeString) {
-		this.name=name;
+
+	private AlignMethod(String name, String tcoffeeString) {
+		this.name = name;
 		this.tcoffeeString = tcoffeeString;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
 
-	public String getTCoffeeString () {
+	public String getTCoffeeString() {
 		return this.tcoffeeString;
 	}
 }

@@ -21,7 +21,6 @@
  */
 package es.uvigo.ei.sing.adops.configuration;
 
-
 public class MrBayesConfiguration extends SubConfiguration implements ExecutableConfiguration {
 	private static final String VALUE_NGEN = "500000";
 
@@ -29,7 +28,7 @@ public class MrBayesConfiguration extends SubConfiguration implements Executable
 	private static final String VALUE_TBURNIN = "1250";
 
 	public static final String PROPERTIES_PREFIX = "mrbayes";
-	
+
 	public static final String PROPERTY_MPICH = "mpich";
 	public static final String PROPERTY_PARAMETERS = "params";
 	public static final String PROPERTY_NGEN = "ngen";
@@ -39,74 +38,63 @@ public class MrBayesConfiguration extends SubConfiguration implements Executable
 	public MrBayesConfiguration(Configuration configuration) {
 		super(configuration, MrBayesConfiguration.PROPERTIES_PREFIX);
 	}
-	
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#getDirectory()
-	 */
+
 	@Override
 	public String getDirectory() {
 		return this.getProperty(ExecutableConfiguration.PROPERTY_DIRECTORY);
 	}
-	
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#setDirectory(java.lang.String)
-	 */
+
 	@Override
 	public void setDirectory(String directory) {
 		this.setProperty(ExecutableConfiguration.PROPERTY_DIRECTORY, directory);
 	}
-	
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#getBinary()
-	 */
+
 	@Override
 	public String getBinary() {
 		return this.getProperty(ExecutableConfiguration.PROPERTY_BINARY);
 	}
 
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#setBinary(java.lang.String)
-	 */
 	@Override
 	public void setBinary(String binary) {
 		this.setProperty(ExecutableConfiguration.PROPERTY_BINARY, binary);
 	}
-	
+
 	public String getMpich() {
 		return this.getProperty(MrBayesConfiguration.PROPERTY_MPICH);
 	}
-	
+
 	public void setMpich(String mpich) {
 		this.setProperty(MrBayesConfiguration.PROPERTY_MPICH, mpich);
 	}
-	
+
 	public String getParameters() {
 		return this.getProperty(MrBayesConfiguration.PROPERTY_PARAMETERS);
 	}
-	
+
 	public void setParameters(String parameters) {
 		this.setProperty(MrBayesConfiguration.PROPERTY_PARAMETERS, parameters);
 	}
-	
+
 	public int getNumOfGenerations() {
 		return Integer.parseInt(this.getProperty(MrBayesConfiguration.PROPERTY_NGEN, MrBayesConfiguration.VALUE_NGEN));
 	}
-	
+
 	public void setNumOfGenerations(int ngen) {
 		this.setProperty(MrBayesConfiguration.PROPERTY_NGEN, Integer.toString(ngen));
 	}
-	
+
 	public int getPBurnin() {
 		return Integer.parseInt(this.getProperty(MrBayesConfiguration.PROPERTY_PBURNIN, MrBayesConfiguration.VALUE_PBURNIN));
 	}
-	
+
 	public void setPBurnin(int burnin) {
 		this.setProperty(MrBayesConfiguration.PROPERTY_PBURNIN, Integer.toString(burnin));
 	}
+
 	public int getTBurnin() {
 		return Integer.parseInt(this.getProperty(MrBayesConfiguration.PROPERTY_TBURNIN, MrBayesConfiguration.VALUE_TBURNIN));
 	}
-	
+
 	public void setTBurnin(int burnin) {
 		this.setProperty(MrBayesConfiguration.PROPERTY_TBURNIN, Integer.toString(burnin));
 	}

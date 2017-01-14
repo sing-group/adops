@@ -36,7 +36,7 @@ public class ProcessUtils {
 	public static interface Printer {
 		public void println(String line);
 	}
-	
+
 	public static Printer wrap(final Logger log) {
 		return new Printer() {
 			@Override
@@ -45,7 +45,7 @@ public class ProcessUtils {
 			}
 		};
 	}
-	
+
 	public static Printer wrap(final PrintStream ps) {
 		return new Printer() {
 			@Override
@@ -54,7 +54,7 @@ public class ProcessUtils {
 			}
 		};
 	}
-	
+
 	public static Printer wrap(final PrintWriter pw) {
 		return new Printer() {
 			@Override
@@ -63,42 +63,43 @@ public class ProcessUtils {
 			}
 		};
 	}
-	
-	public static Printer[] wrap(PrintStream...streams) {
-		final List<Printer> printers = new LinkedList<Printer>();
-		
+
+	public static Printer[] wrap(PrintStream... streams) {
+		final List<Printer> printers = new LinkedList<>();
+
 		for (PrintStream ps : streams) {
 			if (ps != null)
 				printers.add(wrap(ps));
 		}
-		
+
 		return printers.toArray(new Printer[printers.size()]);
 	}
-	
-	public static Printer[] wrap(PrintWriter...writers) {
-		final List<Printer> printers = new LinkedList<Printer>();
-		
+
+	public static Printer[] wrap(PrintWriter... writers) {
+		final List<Printer> printers = new LinkedList<>();
+
 		for (PrintWriter pw : writers) {
 			if (pw != null)
 				printers.add(wrap(pw));
 		}
-		
+
 		return printers.toArray(new Printer[printers.size()]);
 	}
-	
-	public static int runCommand(String command, Printer ... outs) throws IOException, InterruptedException {
+
+	public static int runCommand(String command, Printer... outs) throws IOException, InterruptedException {
 		return ProcessUtils.runCommand(command, null, null, outs);
 	}
-	
-	public static int runCommand(String command, String[] envp, File dir, Printer ... outs) throws IOException, InterruptedException {
+
+	public static int runCommand(String command, String[] envp, File dir, Printer... outs)
+	throws IOException, InterruptedException {
 		final Process process;
-		
+
 		if (envp == null && dir == null) {
 			process = Runtime.getRuntime().exec(command);
 		} else {
 			process = Runtime.getRuntime().exec(command, envp, dir);
 		}
-		
+
 		final Thread shutdownHook = new Thread() {
 			@Override
 			public void run() {
@@ -108,23 +109,17 @@ public class ProcessUtils {
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 		try {
 			if (outs.length > 0) {
-				BufferedReader processIn = null;
-				try {
-					processIn = new BufferedReader(new InputStreamReader(process.getInputStream()));
-					
+				try (BufferedReader processIn = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+
 					String line;
 					while ((line = processIn.readLine()) != null) {
 						for (Printer out : outs) {
 							out.println(line);
 						}
 					}
-				} finally {
-					if (processIn != null)
-						try { processIn.close(); } 
-						catch (IOException ioe) {}
 				}
 			}
-			
+
 			return process.waitFor();
 		} finally {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);

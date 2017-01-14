@@ -30,7 +30,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -53,12 +52,15 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
-import say.swing.JFontChooser;
 import es.uvigo.ei.aibench.workbench.Workbench;
 import es.uvigo.ei.sing.adops.FastaUtils;
+import say.swing.JFontChooser;
 
 public class TextFileViewer extends JPanel {
+	private final static Logger LOG = Logger.getLogger(TextFileViewer.class);
+	
 	private static final long serialVersionUID = 1L;
 
 	private final JTextArea textArea;
@@ -66,43 +68,45 @@ public class TextFileViewer extends JPanel {
 	private final JCheckBox chkRegularExpression;
 	private final Highlighter.HighlightPainter highlightPatiner;
 	private final JFontChooser fontChooser;
-	
+
 	private final File file;
 	private boolean wasModified = false;
-	
+
 	public TextFileViewer(final File file) {
 		super(new BorderLayout());
-		
+
 		this.file = file;
-		
+
 		// TEXT AREA
 		this.textArea = new JTextArea(TextFileViewer.loadFile(file));
-		this.textArea.setFont(new Font(
-			Font.MONOSPACED,
-			Font.PLAIN,
-			this.textArea.getFont().getSize()
-		));
+		this.textArea.setFont(
+			new Font(
+				Font.MONOSPACED,
+				Font.PLAIN,
+				this.textArea.getFont().getSize()
+			)
+		);
 		this.textArea.setLineWrap(true);
 		this.textArea.setWrapStyleWord(true);
 		this.textArea.setEditable(false);
-		
+
 		this.highlightPatiner = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-		
+
 		// OPTIONS PANEL
 		final JPanel panelOptions = new JPanel(new BorderLayout());
 		final JPanel panelOptionsEast = new JPanel(new FlowLayout());
 		final JPanel panelOptionsWest = new JPanel(new FlowLayout());
 		final JCheckBox chkLineWrap = new JCheckBox("Line wrap", true);
 		final JButton btnChangeFont = new JButton("Change Font");
-		
+
 		final JLabel lblSearch = new JLabel("Search");
 		this.txtSearch = new JTextField();
 		this.chkRegularExpression = new JCheckBox("Reg. exp.", true);
 		final JButton btnSearch = new JButton("Search");
 		final JButton btnClear = new JButton("Clear");
 		this.txtSearch.setColumns(12);
-//		this.txtSearch.setOpaque(true);
-		
+		// this.txtSearch.setOpaque(true);
+
 		panelOptionsEast.add(btnChangeFont);
 		panelOptionsEast.add(chkLineWrap);
 		panelOptionsWest.add(lblSearch);
@@ -110,85 +114,94 @@ public class TextFileViewer extends JPanel {
 		panelOptionsWest.add(this.chkRegularExpression);
 		panelOptionsWest.add(btnSearch);
 		panelOptionsWest.add(btnClear);
-		
+
 		if (FastaUtils.isFasta(file)) {
 			panelOptionsWest.add(new JSeparator());
-			
+
 			final JButton btnExport = new JButton("Export...");
-			
+
 			panelOptionsWest.add(btnExport);
-			
-			btnExport.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try {
-						new ExportDialog(file).setVisible(true);
-					} catch (Exception e1) {
-						JOptionPane.showMessageDialog(
-							Workbench.getInstance().getMainFrame(),
-							"Error reading fasta file: " + e1.getMessage(),
-							"Export Error",
-							JOptionPane.ERROR_MESSAGE
-						);
+
+			btnExport.addActionListener(
+				new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						try {
+							new ExportDialog(file).setVisible(true);
+						} catch (Exception e1) {
+							JOptionPane.showMessageDialog(
+								Workbench.getInstance().getMainFrame(),
+								"Error reading fasta file: " + e1.getMessage(),
+								"Export Error",
+								JOptionPane.ERROR_MESSAGE
+							);
+						}
 					}
 				}
-			});
+			);
 		}
-		
+
 		panelOptions.add(panelOptionsWest, BorderLayout.WEST);
 		panelOptions.add(panelOptionsEast, BorderLayout.EAST);
-		
+
 		this.fontChooser = new JFontChooser();
-		
+
 		this.add(new JScrollPane(this.textArea), BorderLayout.CENTER);
 		this.add(panelOptions, BorderLayout.NORTH);
 
-		
-		chkLineWrap.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				textArea.setLineWrap(chkLineWrap.isSelected());
+		chkLineWrap.addActionListener(
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					textArea.setLineWrap(chkLineWrap.isSelected());
+				}
 			}
-		});
-		
-		btnChangeFont.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				changeFont();
+		);
+
+		btnChangeFont.addActionListener(
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					changeFont();
+				}
 			}
-		});
-		
-		this.textArea.getDocument().addDocumentListener(new DocumentListener() {
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				TextFileViewer.this.wasModified = true;
+		);
+
+		this.textArea.getDocument().addDocumentListener(
+			new DocumentListener() {
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					TextFileViewer.this.wasModified = true;
+				}
+
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					TextFileViewer.this.wasModified = true;
+				}
+
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+					TextFileViewer.this.wasModified = true;
+				}
 			}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				TextFileViewer.this.wasModified = true;
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				TextFileViewer.this.wasModified = true;
-			}
-		});
-		
-		this.textArea.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (TextFileViewer.this.wasModified) {
-					try {
-						FileUtils.write(TextFileViewer.this.file, TextFileViewer.this.textArea.getText());
-						TextFileViewer.this.wasModified = false;
-					} catch (IOException e1) {
-						e1.printStackTrace();
+		);
+
+		this.textArea.addFocusListener(
+			new FocusAdapter() {
+				@Override
+				public void focusLost(FocusEvent e) {
+					if (TextFileViewer.this.wasModified) {
+						try {
+							FileUtils.write(TextFileViewer.this.file, TextFileViewer.this.textArea.getText());
+							TextFileViewer.this.wasModified = false;
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
 					}
 				}
 			}
-		});
-		
+		);
+
 		final ActionListener alSearch = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -197,42 +210,44 @@ public class TextFileViewer extends JPanel {
 		};
 		txtSearch.addActionListener(alSearch);
 		btnSearch.addActionListener(alSearch);
-		
-		btnClear.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				clearSearch();
+
+		btnClear.addActionListener(
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					clearSearch();
+				}
 			}
-		});
+		);
 	}
-	
+
 	public void setEditable(boolean editable) {
 		this.textArea.setEditable(editable);
 	}
-	
+
 	public boolean isEditable() {
 		return this.textArea.isEditable();
 	}
-	
+
 	public String getText() {
 		return textArea.getText();
 	}
-	
+
 	private void updateSearch() {
 		textArea.getHighlighter().removeAllHighlights();
-		
+
 		final String textToFind = txtSearch.getText();
-		
+
 		if (!textToFind.isEmpty()) {
 			final String text = textArea.getText();
-			
+
 			if (this.chkRegularExpression.isSelected()) {
 				try {
 					final Pattern pattern = Pattern.compile(textToFind);
 					this.txtSearch.setBackground(Color.WHITE);
-					
+
 					final Matcher matcher = pattern.matcher(text);
-					
+
 					while (matcher.find()) {
 						try {
 							textArea.getHighlighter().addHighlight(
@@ -247,7 +262,7 @@ public class TextFileViewer extends JPanel {
 				}
 			} else {
 				final int textToFindLength = textToFind.length();
-				
+
 				int index = 0;
 				while ((index = text.indexOf(textToFind, index)) != -1) {
 					try {
@@ -261,22 +276,6 @@ public class TextFileViewer extends JPanel {
 				}
 			}
 		}
-//		if (!textToFind.isEmpty()) {
-//			final String text = textArea.getText();
-//			final int textToFindLength = textToFind.length();
-//			
-//			int index = 0;
-//			while ((index = text.indexOf(textToFind, index)) != -1) {
-//				try {
-//					textArea.getHighlighter().addHighlight(
-//						index, index + textToFindLength, highlightPatiner
-//					);
-//					index += textToFindLength + 1;
-//				} catch (BadLocationException e1) {
-//					e1.printStackTrace();
-//				}
-//			}
-//		}
 	}
 
 	private void changeFont() {
@@ -296,28 +295,20 @@ public class TextFileViewer extends JPanel {
 			throw new IllegalArgumentException("file must be a text file: " + file.getAbsolutePath());
 		}
 		
-		FileReader fr = null;
-		
-		final StringBuilder sb = new StringBuilder();
-		try {
-			fr = new FileReader(file);
+		try (FileReader fr = new FileReader(file)) {
+			final StringBuilder sb = new StringBuilder();
 			
-			char[] buffer = new char[1024];
+			final char[] buffer = new char[1024];
 			int c;
 			while ((c = fr.read(buffer)) != -1) {
-				sb.append(buffer,0,c);
+				sb.append(buffer, 0, c);
 			}
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+
+			return sb.toString();
 		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (fr != null)
-				try { fr.close(); }
-				catch (IOException e) {}
+			LOG.error("Error loading file: " + file, e);
+			
+			throw new RuntimeException("Error loading file: " + file, e);
 		}
-		
-		return sb.toString();
 	}
 }

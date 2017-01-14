@@ -27,20 +27,20 @@ import es.uvigo.ei.aibench.core.datatypes.annotation.Clipboard;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
 
-@Datatype(structure=Structure.COMPLEX)
+@Datatype(structure = Structure.COMPLEX)
 public class MrBayesOutput extends AbstractOperationOutput {
 	public static final String OUTPUT_FOLDER_NAME = "mrbayes";
-	
+
 	private final File inputFile;
 	private final File outputFolder;
-	
+
 	public MrBayesOutput(File inputFile, File outputFolder) {
 		this(inputFile, outputFolder, -1);
 	}
-	
+
 	public MrBayesOutput(File inputFile, File outputFolder, int state) {
 		super(state);
-		
+
 		this.inputFile = inputFile;
 		this.outputFolder = new File(outputFolder, MrBayesOutput.OUTPUT_FOLDER_NAME);
 		this.outputFolder.mkdirs();
@@ -49,61 +49,61 @@ public class MrBayesOutput extends AbstractOperationOutput {
 	public File getInputFile() {
 		return this.inputFile;
 	}
-	
+
 	public File getNexusFile() {
 		return new File(this.outputFolder, this.inputFile.getName() + ".mnxs");
 	}
-	
+
 	public File getMrBayesFile() {
 		return new File(this.outputFolder, this.inputFile.getName() + ".mrb");
 	}
-	
-	@Clipboard(name=".con File", order=1)
+
+	@Clipboard(name = ".con File", order = 1)
 	public File getConFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".con");
 	}
 
-	@Clipboard(name=".mcmc File", order=2)
+	@Clipboard(name = ".mcmc File", order = 2)
 	public File getMcmcFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".mcmc");
 	}
 
-	@Clipboard(name=".parts File", order=3)
+	@Clipboard(name = ".parts File", order = 3)
 	public File getPartsFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".parts");
 	}
 
-	@Clipboard(name=".run1.p File", order=4)
+	@Clipboard(name = ".run1.p File", order = 4)
 	public File getRun1pFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".run1.p");
 	}
 
-	@Clipboard(name=".run1.t File", order=5)
+	@Clipboard(name = ".run1.t File", order = 5)
 	public File getRun1tFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".run1.t");
 	}
 
-	@Clipboard(name=".run2.p File", order=6)
+	@Clipboard(name = ".run2.p File", order = 6)
 	public File getRun2pFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".run2.p");
 	}
 
-	@Clipboard(name=".run2.t File", order=7)
+	@Clipboard(name = ".run2.t File", order = 7)
 	public File getRun2tFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".run2.t");
 	}
 
-	@Clipboard(name=".trprobs File", order=8)
+	@Clipboard(name = ".trprobs File", order = 8)
 	public File getTrprobsFile() {
 		return new File(this.getMrBayesFile().getAbsolutePath() + ".trprobs");
 	}
 
-	@Clipboard(name="PSRF File", order=9)
+	@Clipboard(name = "PSRF File", order = 9)
 	public File getPsrfFile() {
 		return new File(this.getMrBayesFile().getParent(), "mrbayes.log.psrf");
 	}
 
-	@Clipboard(name="Log File", order=10)
+	@Clipboard(name = "Log File", order = 10)
 	public File getLogFile() {
 		return new File(this.getMrBayesFile().getParent(), "mrbayes.log");
 	}

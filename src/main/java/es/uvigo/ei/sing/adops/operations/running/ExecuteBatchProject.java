@@ -43,59 +43,45 @@ public class ExecuteBatchProject {
 	private BatchProject project;
 	private int numberOfThread;
 	private List<ProjectExecutorRunnable> tasks;
-	
-	@Port(
-		name = "Batch Project",
-		description = "Batch project to execute",
-		direction = Direction.INPUT,
-		order = 1
-	)
+
+	@Port(name = "Batch Project", description = "Batch project to execute", direction = Direction.INPUT, order = 1)
 	public void setProject(BatchProject project) {
 		this.project = project;
 	}
-	
-	@Port(
-		name = "Num. of Threads",
-		description = "Number of threads to use (simultaneous project executions)",
-		direction = Direction.INPUT,
-		order = 2
-	)
+
+	@Port(name = "Num. of Threads", description = "Number of threads to use (simultaneous project executions)", direction = Direction.INPUT, order = 2)
 	public void setNumberOfThread(int numberOfThread) {
 		this.numberOfThread = numberOfThread;
 	}
-	
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 1000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 1000)
 	public BatchProjectOutput run() {
 		this.project.setRunning(true);
 		final BatchProjectOutput output = this.project.getOutput();
-		
+
 		final ExecutorService executor = Executors.newFixedThreadPool(this.numberOfThread);
-		this.tasks = new ArrayList<ExecuteBatchProject.ProjectExecutorRunnable>(output.numProjects());
-		
+		this.tasks = new ArrayList<>(output.numProjects());
+
 		for (int i = 0; i < output.numProjects(); i++) {
-			final ProjectExecutorRunnable task = 
-				new ProjectExecutorRunnable(i, output);
-			
+			final ProjectExecutorRunnable task = new ProjectExecutorRunnable(i, output);
+
 			this.tasks.add(task);
 			executor.execute(task);
 		}
-		
+
 		executor.shutdown();
 		try {
 			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		this.tasks = null;
 		this.project.setRunning(false);
-		
+
 		return output;
 	}
-	
+
 	@Cancel
 	public void cancel() {
 		if (this.tasks != null) {
@@ -104,7 +90,7 @@ public class ExecuteBatchProject {
 			}
 		}
 	}
-	
+
 	private static final class ProjectExecutorRunnable implements Runnable {
 		private final int index;
 		private final BatchProjectOutput output;
@@ -120,53 +106,62 @@ public class ExecuteBatchProject {
 			this.canceled = new AtomicBoolean(false);
 			this.project = null;
 		}
-		
+
 		public void cancel() {
 			synchronized (this.canceled) {
 				if (this.execute != null) {
 					this.execute.cancel();
 				}
-				
+
 				this.canceled.set(true);
 			}
 		}
-		
+
 		@Override
 		public void run() {
 			try {
-				if (this.canceled.get()) return;
-				
+				if (this.canceled.get())
+					return;
+
 				this.project = output.getProject(index);
-				
+
 				if (output.isReady(project)) {
-					if (this.canceled.get()) return;
-					
+					if (this.canceled.get())
+						return;
+
 					if (!output.hasResult(project)) {
-						if (this.canceled.get()) return;
-						
+						if (this.canceled.get())
+							return;
+
 						final CreateExperiment create = new CreateExperiment();
 						create.setProject(project);
 						create.setName("batch");
 						create.setSequences("");
-						
+
 						this.experiment = create.create();
-						
-						if (this.canceled.get()) return;
+
+						if (this.canceled.get())
+							return;
 						try {
 							execute = new ExecuteExperimentBySteps();
 							execute.setExperiment(experiment);
 							execute.setUseStdOutput(true);
-							
-							if (this.canceled.get()) return;
+
+							if (this.canceled.get())
+								return;
 							execute.createExperimentOutput();
-							if (this.canceled.get()) return;
+							if (this.canceled.get())
+								return;
 							execute.runTCoffee();
-							if (this.canceled.get()) return;
+							if (this.canceled.get())
+								return;
 							execute.runMrBayes();
-							if (this.canceled.get()) return;
+							if (this.canceled.get())
+								return;
 							execute.runCodeML();
-							if (this.canceled.get()) return;
-							
+							if (this.canceled.get())
+								return;
+
 							output.addResult(project, execute.getResult());
 						} catch (Exception e) {
 							output.addResult(project, e);
@@ -178,7 +173,7 @@ public class ExecuteBatchProject {
 			} finally {
 				if (this.experiment != null) {
 					this.experiment.setRunning(false);
-					if (!this.output.hasResult(this.project)) 
+					if (!this.output.hasResult(this.project))
 						this.experiment.delete();
 				}
 			}

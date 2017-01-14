@@ -21,12 +21,8 @@
  */
 package es.uvigo.ei.sing.adops.views.utils;
 
-/**
- * 
- * @author Miguel Reboiro-Jato
- *
- */
 public interface ClipboardItemView {
 	public boolean canShowClipboardItem(Object clipboardItem);
+
 	public boolean showClipboardItem(Object clipboardItem);
 }

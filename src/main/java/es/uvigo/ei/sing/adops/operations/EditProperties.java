@@ -27,20 +27,17 @@ import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.configuration.Configuration;
 import es.uvigo.ei.sing.adops.datatypes.HasConfiguration;
 
-@Operation(name="Edit Properties")
+@Operation(name = "Edit Properties")
 public class EditProperties {
 	private HasConfiguration hasProperties;
-	
-	@Port(
-		name = "Has properties",
-		direction = Direction.INPUT,
-		order = 1
-	)
+
+	@Port(name = "Has properties", direction = Direction.INPUT, order = 1)
 	public void setHasProperties(HasConfiguration hasProperties) {
 		this.hasProperties = hasProperties;
 	}
-	
+
 	public Configuration getProperties() {
 		return this.hasProperties.getConfiguration();
 	}
+	
 }

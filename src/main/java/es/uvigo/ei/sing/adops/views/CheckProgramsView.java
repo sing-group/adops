@@ -47,15 +47,15 @@ import es.uvigo.ei.sing.adops.operations.running.tcoffee.TCoffeeProcessManager;
 
 public class CheckProgramsView extends JPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private final static ImageIcon WARNING_ICON = new ImageIcon(CheckProgramsDialog.class.getResource("images/warning8.png"));
-	
+
 	private final static MouseListener TOOLTIP_TRIGGER = new MouseAdapter() {
 		@Override
 		public void mouseEntered(MouseEvent e) {
 			if (e.getComponent() instanceof JLabel) {
 				final Action toolTipAction = ((JLabel) e.getComponent()).getActionMap().get("postTip");
-				
+
 				if (toolTipAction != null) {
 					ActionEvent postTip = new ActionEvent(e.getComponent(), ActionEvent.ACTION_PERFORMED, "");
 					toolTipAction.actionPerformed(postTip);
@@ -73,48 +73,53 @@ public class CheckProgramsView extends JPanel {
 
 	public CheckProgramsView(final Configuration configuration) {
 		super(new BorderLayout());
-		
+
 		this.configuration = configuration;
-		
+
 		final JPanel checkPanel = new JPanel(new GridLayout(3, 1, 10, 10));
-		checkPanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), 
-			BorderFactory.createEmptyBorder(10, 10, 10, 10)
-		));
+		checkPanel.setBorder(
+			BorderFactory.createCompoundBorder(
+				BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+				BorderFactory.createEmptyBorder(10, 10, 10, 10)
+			)
+		);
 		checkPanel.setBackground(Color.WHITE);
-		
+
 		checkPanel.add(this.lblTCoffee = new JLabel("T-Coffee:"));
 		checkPanel.add(this.lblMrBayes = new JLabel("MrBayes:"));
 		checkPanel.add(this.lblCodeML = new JLabel("CodeML:"));
-		
-		this.buttonsPanel = new JPanel();
-		this.buttonsPanel.add(new JButton(new AbstractAction("Check") {
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				CheckProgramsView.this.checkVersions();
-			}
-		}));
-		
+		this.buttonsPanel = new JPanel();
+		this.buttonsPanel.add(
+			new JButton(
+				new AbstractAction("Check") {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						CheckProgramsView.this.checkVersions();
+					}
+				}
+			)
+		);
+
 		this.add(checkPanel, BorderLayout.CENTER);
 		this.add(this.buttonsPanel, BorderLayout.SOUTH);
-		
+
 		this.checkVersions();
 	}
-	
+
 	public JPanel getButtonsPanel() {
 		return this.buttonsPanel;
 	}
-	
+
 	private void checkVersions() {
 		CheckProgramsView.removeTooltip(this.lblTCoffee);
 		CheckProgramsView.removeTooltip(this.lblMrBayes);
 		CheckProgramsView.removeTooltip(this.lblCodeML);
 		try {
-			final String version = 
-				TCoffeeProcessManager.getVersion(configuration.getTCoffeeConfiguration());
-			
+			final String version = TCoffeeProcessManager.getVersion(configuration.getTCoffeeConfiguration());
+
 			if (TCoffeeProcessManager.isSupported(version)) {
 				lblTCoffee.setText("T-Coffee: Ok [Version " + version + "]");
 			} else {
@@ -125,9 +130,8 @@ public class CheckProgramsView extends JPanel {
 			lblTCoffee.setText("T-Coffee: Missing");
 		}
 		try {
-			final String version = 
-				MrBayesProcessManager.getVersion(configuration.getMrBayesConfiguration());
-			
+			final String version = MrBayesProcessManager.getVersion(configuration.getMrBayesConfiguration());
+
 			if (MrBayesProcessManager.isSupported(version)) {
 				lblMrBayes.setText("MrBayes: Ok [Version " + version + "]");
 			} else {
@@ -138,9 +142,8 @@ public class CheckProgramsView extends JPanel {
 			lblMrBayes.setText("MrBayes: Missing");
 		}
 		try {
-			final String version = 
-				CodeMLProcessManager.getVersion(configuration.getCodeMLConfiguration());
-			
+			final String version = CodeMLProcessManager.getVersion(configuration.getCodeMLConfiguration());
+
 			if (CodeMLProcessManager.isSupported(version)) {
 				lblCodeML.setText("CodeML: Ok [Version " + version + "]");
 			} else {
@@ -151,25 +154,25 @@ public class CheckProgramsView extends JPanel {
 			lblCodeML.setText("CodeML: Missing");
 		}
 	}
-	
+
 	private final static void removeTooltip(JLabel label) {
 		label.removeMouseListener(TOOLTIP_TRIGGER);
 		label.setToolTipText(null);
 		label.setIcon(null);
 	}
-	
+
 	private final static void addTooltip(JLabel label, List<String> versions) {
 		final StringBuilder sb = new StringBuilder("<html>Supported versions:<br>");
-		
+
 		for (String version : versions) {
 			sb.append("&nbsp;&nbsp;&nbsp;").append(version).append("<br>");
 		}
-		
+
 		sb.append("</html>");
-		
+
 		label.setToolTipText(sb.toString());
 		label.setIcon(WARNING_ICON);
-		
+
 		label.addMouseListener(TOOLTIP_TRIGGER);
 	}
 }

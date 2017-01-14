@@ -30,17 +30,17 @@ public interface Experiment extends HasConfiguration {
 	public abstract File getFilesFolder();
 
 	public abstract ExperimentOutput getResult();
-	
+
 	public abstract void deleteResult();
 
 	public abstract boolean hasResult();
-	
+
 	public abstract boolean isClean();
 
 	public abstract void clear();
-	
+
 	public abstract boolean isRunning();
-	
+
 	public abstract void setRunning(boolean running);
 
 	public abstract File getFastaFile();
@@ -48,44 +48,24 @@ public interface Experiment extends HasConfiguration {
 	public abstract File getSourceFastaFile();
 
 	public abstract File getNamesFile();
-	
-	public abstract Map<String,String> getNames();
+
+	public abstract Map<String, String> getNames();
 
 	public abstract File getSourceNamesFile();
-	
-//	public abstract boolean hasAlignedFastaFile();
-	
-//	public abstract boolean hasRenamedAlignedFastaFile();
-//
-//	public abstract boolean hasRenamedAlignedProteinFastaFile();
-//	
-//	public abstract boolean hasRenamedConFile();
-
-//	public abstract File getAlignedFastaFile();
-
-//	public abstract File getRenamedAlignedFastaFile();
-//
-//	public abstract File getRenamedAlignedProteinFastaFile();
-//
-//	public abstract File getRenamedConFile();
 
 	public abstract File getNotesFile();
-	
+
 	public abstract void setResult(ExperimentOutput result);
-	
+
 	public abstract String getNotes();
-	
+
 	public abstract void setNotes(String notes);
-	
+
 	public abstract void generateInputFiles();
 
 	public abstract String getName();
-	
-//	public abstract String getMrBayesVersion() throws IOException;
-//	
-//	public abstract String getCodeMLVersion() throws IOException;
-	
+
 	public abstract void delete();
-	
+
 	public abstract String getWarnings();
 }

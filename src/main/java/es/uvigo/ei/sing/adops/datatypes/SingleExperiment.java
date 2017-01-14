@@ -31,49 +31,46 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import es.uvigo.ei.sing.adops.configuration.Configuration;
 
 public class SingleExperiment implements Experiment {
-//	private static final Logger log = Logger.getLogger(SingleExperiment.class);
-
+	private final static Logger LOG = Logger.getLogger(SingleExperiment.class);
+	
 	private final File namesFile;
 
 	private final File fastaFile;
-	
-//	private final File alignedFastaFile, alignedProteinFastaFile;
-	
+
 	private final File folder;
 	private final File propertiesFile;
 	private final Configuration configuration;
 	private String notes;
 
 	private ExperimentOutput result;
-	
+
 	private boolean running;
-	
+
 	public SingleExperiment(File folder, File propertiesFile, File fastaFile, File namesFile) throws IOException {
 		super();
 		this.folder = folder;
 		this.propertiesFile = propertiesFile;
-		
+
 		if (!this.folder.exists() && !this.folder.mkdirs()) {
 			throw new IllegalArgumentException(
 				"Experiment folder (" + this.folder.getAbsolutePath() + ") could not be created"
 			);
 		}
-		
+
 		this.configuration = new Configuration(
-			Configuration.getSystemConfiguration(), 
+			Configuration.getSystemConfiguration(),
 			this.propertiesFile
 		);
-		
+
 		this.running = false;
-		
+
 		this.fastaFile = fastaFile;
 		this.namesFile = namesFile;
-//		this.alignedFastaFile = new File(this.folder, "aligned");
-//		this.alignedProteinFastaFile = new File(this.folder, "prot.aligned");
 	}
 
 	@Override
@@ -95,7 +92,7 @@ public class SingleExperiment implements Experiment {
 	public File getFilesFolder() {
 		return new File(this.getFolder(), "allfiles");
 	}
-	
+
 	public void setResult(ExperimentOutput result) {
 		this.result = result;
 	}
@@ -119,58 +116,27 @@ public class SingleExperiment implements Experiment {
 	public File getNamesFile() {
 		return this.namesFile;
 	}
-	
+
 	@Override
-	public Map<String,String> getNames() {
-        BufferedReader br = null;
-        FileReader reader = null;
-        
-        try {
-			reader = new FileReader(this.getNamesFile());
-	        br = new BufferedReader(reader);
-	        
-	        final Map<String,String> names = new HashMap<String,String>();
-	        
-	        String line = null;
+	public Map<String, String> getNames() {
+		try (BufferedReader br = new BufferedReader(new FileReader(this.getNamesFile()))) {
+			final Map<String, String> names = new HashMap<>();
+
+			String line = null;
 			while ((line = br.readLine()) != null) {
-	        	final String[] splits = line.split("-");
-	        	
-	        	names.put(splits[1].trim(), splits[0].trim());
-	        }
-	        
-	        return names;
+				final String[] splits = line.split("-");
+
+				names.put(splits[1].trim(), splits[0].trim());
+			}
+
+			return names;
 		} catch (IOException e) {
+			LOG.error("Error retrieving single experiment names", e);
+			
 			throw new RuntimeException(e);
-		} finally {
-			if (br != null)
-				try { br.close(); }
-				catch (IOException ioe) {}
-			if (reader != null)
-				try { reader.close(); }
-				catch (IOException ioe) {}
 		}
 	}
 
-//	@Override
-//	public File getAlignedFastaFile() {
-//		return this.alignedFastaFile;
-//	}
-//	
-//	@Override
-//	public boolean hasAlignedFastaFile() {
-//		return this.alignedFastaFile.isFile();
-//	}
-
-//	@Override
-//	public File getRenamedAlignedProteinFastaFile() {
-//		return this.alignedProteinFastaFile;
-//	}
-//	
-//	@Override
-//	public boolean hasRenamedAlignedProteinFastaFile() {
-//		return this.alignedProteinFastaFile.isFile();
-//	}
-//	
 	@Override
 	public String getNotes() {
 		return this.notes;
@@ -178,30 +144,29 @@ public class SingleExperiment implements Experiment {
 
 	@Override
 	public void setNotes(String notes) {
-		this.notes=notes;
+		this.notes = notes;
 	}
 
 	public File getNotesFile() {
-		return new File(this.folder,"notes.txt");
+		return new File(this.folder, "notes.txt");
 	}
 
 	@Override
 	public boolean isRunning() {
 		return this.running;
 	}
-	
+
 	@Override
 	public void setRunning(boolean running) {
 		this.running = running;
 	}
-	
+
 	@Override
 	public void delete() {
 		try {
 			FileUtils.deleteDirectory(folder);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Error deleting experiment folder: " + folder, e);
 		}
 	}
 
@@ -218,7 +183,7 @@ public class SingleExperiment implements Experiment {
 	@Override
 	public void generateInputFiles() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -234,7 +199,7 @@ public class SingleExperiment implements Experiment {
 			this.result = null;
 		}
 	}
-	
+
 	@Override
 	public boolean isClean() {
 		if (this.hasResult()) {
@@ -243,54 +208,55 @@ public class SingleExperiment implements Experiment {
 			final FileFilter filter = new FileFilter() {
 				@Override
 				public boolean accept(File pathname) {
-					if (pathname.equals(SingleExperiment.this.getNotesFile()) ||
+					if (
+						pathname.equals(SingleExperiment.this.getNotesFile()) ||
 						pathname.equals(SingleExperiment.this.getPropertiesFile()) ||
-						pathname.equals(SingleExperiment.this.getFastaFile()) || 
+						pathname.equals(SingleExperiment.this.getFastaFile()) ||
 						pathname.equals(SingleExperiment.this.getNamesFile())
 					) {
 						return false;
 					} else if (pathname.equals(SingleExperiment.this.getFilesFolder())) {
 						return pathname.listFiles().length != 0;
 					}
-					
+
 					return true;
 				}
 			};
-			
+
 			return this.getFolder().listFiles(filter).length > 0;
 		}
 	}
-	
+
 	@Override
 	public void clear() {
 		final FileFilter filter = new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
-				if (pathname.equals(SingleExperiment.this.getNotesFile()) ||
+				return !(
+					pathname.equals(SingleExperiment.this.getNotesFile()) ||
 					pathname.equals(SingleExperiment.this.getPropertiesFile()) ||
-					pathname.equals(SingleExperiment.this.getFastaFile()) || 
+					pathname.equals(SingleExperiment.this.getFastaFile()) ||
 					pathname.equals(SingleExperiment.this.getNamesFile()) ||
 					pathname.equals(SingleExperiment.this.getFilesFolder())
-				) {
-					return false;
-				}
-				
-				return true;
+				);
 			}
 		};
-		
+
 		for (File file : this.getFolder().listFiles(filter)) {
-			if (file.isFile()) file.delete();
+			if (file.isFile())
+				file.delete();
 			else if (file.isDirectory())
 				try {
 					FileUtils.deleteDirectory(file);
 				} catch (IOException e) {}
 		}
-		
+
 		try {
 			FileUtils.cleanDirectory(this.getFilesFolder());
-		} catch (IOException e) {}
-		
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		this.result = null;
 	}
 
@@ -299,33 +265,31 @@ public class SingleExperiment implements Experiment {
 		final String bin = this.configuration.getMrBayesConfiguration().getBinary();
 		final String mpichCommand = this.configuration.getMrBayesConfiguration().getMpich();
 		final String mrbayesCommand = mpichCommand + " " + binDir + bin + " random_file";
-		
 
-		Process process = Runtime.getRuntime().exec(mrbayesCommand);
-		InputStreamReader isr = new InputStreamReader(process.getInputStream());
-		BufferedReader br = new BufferedReader(isr);
-
-		String version = br.readLine();
-		
-		return version.trim();
+		return readVersion(mrbayesCommand);
 	}
 
 	public String getCodeMLVersion() throws IOException {
 		File temp = File.createTempFile("codeml", ".ctl");
-		
+
 		final String binDir = this.configuration.getCodeMLConfiguration().getDirectory();
 		final String bin = this.configuration.getCodeMLConfiguration().getBinary();
 		final String codemlCommand = binDir + File.separator + bin + " " + temp.getAbsolutePath();
 
-		Process process = Runtime.getRuntime().exec(codemlCommand);
-		InputStreamReader isr = new InputStreamReader(process.getInputStream());
-		BufferedReader br = new BufferedReader(isr);
+		try {
+			return readVersion(codemlCommand);
+		} finally {
+			temp.delete();
+		}
+	}
+	
+	private String readVersion(String command) throws IOException {
+		Process process = Runtime.getRuntime().exec(command);
+		BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
 		String version = br.readLine();
-		
-		temp.delete();
-		
-		return version.trim();		
+
+		return version.trim();
 	}
 
 	@Override

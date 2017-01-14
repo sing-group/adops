@@ -23,7 +23,7 @@ package es.uvigo.ei.sing.adops.operations.running;
 
 public class OperationException extends Exception {
 	private static final long serialVersionUID = 1L;
-	
+
 	private final String command;
 
 	public OperationException(String command) {
@@ -44,7 +44,7 @@ public class OperationException extends Exception {
 		super(message, cause);
 		this.command = command;
 	}
-	
+
 	public OperationException() {
 		super();
 		this.command = "";

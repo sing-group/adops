@@ -26,19 +26,10 @@ import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 
-@Operation(
-	name = "Delete Experiment",
-	description = "Delete an experiment from disk along with all its files."
-)
+@Operation(name = "Delete Experiment", description = "Delete an experiment from disk along with all its files.")
 public class DeleteExperiment {
 
-	@Port(
-		name = "Experiment",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Experiment to be deleted"
-	)
+	@Port(name = "Experiment", order = 1, direction = Direction.INPUT, allowNull = false, description = "Experiment to be deleted")
 	public void deleteExperiment(Experiment experiment) {
 		experiment.delete();
 	}

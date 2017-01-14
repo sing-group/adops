@@ -71,7 +71,7 @@ public class ExportDialog extends JDialog {
 	private JComboBox<String> cmbOS;
 	private JComboBox<String> cmbProgram;
 	private JComboBox<String> cmbFormat;
-	
+
 	private JButton btnExport;
 
 	private final File file;
@@ -80,36 +80,37 @@ public class ExportDialog extends JDialog {
 	private SingleListSelectionPanel<FastaSequenceWrapper> panelSingleSequence;
 	private DoubleListSelectionPanel<FastaSequenceWrapper> panelPositiveNegative;
 	private JTabbedPane panelSequenceSelection;
-	
+
 	public ExportDialog(File file) throws ParseException, IOException {
 		super(Workbench.getInstance().getMainFrame(), "Export File", true);
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		
+
 		if (!FastaUtils.isFasta(file, ExportDialog.class.getName())) {
 			throw new IllegalArgumentException(file.getAbsolutePath() + " is not a valid Fasta file");
 		}
-		
+
 		this.file = file;
-		
+
 		final JPanel panelMain = new JPanel(new BorderLayout(0, 10));
 
 		panelMain.add(this.createExportPanel(), BorderLayout.NORTH);
 		panelMain.add(this.createSequenceSelectionPanel(), BorderLayout.CENTER);
 		panelMain.add(this.createPathPanel(), BorderLayout.SOUTH);
-		
+
 		final JPanel contentPane = new JPanel(new BorderLayout());
 		contentPane.add(panelMain, BorderLayout.CENTER);
 		contentPane.add(this.createButtonsPanel(), BorderLayout.SOUTH);
-		
+
 		this.setContentPane(contentPane);
-		
+
 		this.pack();
 		this.setLocationRelativeTo(this.getOwner());
 	}
-	
+
 	private boolean isConfigurationComplete() {
-		if (this.getExportDirectoryPath().isEmpty() || 
-			this.getExportName().isEmpty()
+		if (
+			this.getExportDirectoryPath().isEmpty() ||
+				this.getExportName().isEmpty()
 		) {
 			return false;
 		} else {
@@ -117,22 +118,22 @@ public class ExportDialog extends JDialog {
 				return !this.getSelectedValuesId().isEmpty();
 			} else {
 				return !this.getPositiveValuesId().isEmpty() &&
-						!this.getNegativeValuesId().isEmpty();
+					!this.getNegativeValuesId().isEmpty();
 			}
 		}
 	}
-	
+
 	private void updateButtonExport() {
 		this.btnExport.setEnabled(this.isConfigurationComplete());
 	}
-	
+
 	private void doExport() {
 		if (this.isConfigurationComplete()) {
 			final File exportDirectory = this.getExportDirectory();
-			
+
 			if (!exportDirectory.isDirectory() && !exportDirectory.mkdirs()) {
 				JOptionPane.showConfirmDialog(
-					this, 
+					this,
 					"Directory " + exportDirectory.getAbsolutePath() + " could not be created.",
 					"Export Error",
 					JOptionPane.OK_OPTION,
@@ -141,52 +142,52 @@ public class ExportDialog extends JDialog {
 			} else {
 				final ALTEROutputConfiguration alterConfig = this.getALTERConfiguration();
 				final Writer writer = new DefaultFactory().getWriter(
-					alterConfig.getOs(), 
-					alterConfig.getProgram(), 
-					alterConfig.getFormat(), 
-					false, false, false, false, 
+					alterConfig.getOs(),
+					alterConfig.getProgram(),
+					alterConfig.getFormat(),
+					false, false, false, false,
 					ExportDialog.class.getName()
 				);
 				String exportName = this.getExportName();
-				
+
 				try {
 					final String suffix = "." + alterConfig.getFormat();
-					
+
 					if (this.isSingleExport()) {
 						if (!exportName.toLowerCase().endsWith(suffix)) {
 							exportName += suffix;
 						}
-						
+
 						final File exportFile = new File(exportDirectory, exportName);
 						final Fasta fasta = FastaUtils.extractSequences(
-							FastaUtils.readFasta(this.file), 
+							FastaUtils.readFasta(this.file),
 							this.getSelectedValuesId()
 						);
-						
+
 						FileUtils.writeStringToFile(exportFile, writer.write(fasta));
 					} else {
 						if (exportName.toLowerCase().endsWith(suffix)) {
 							exportName = exportName.substring(0, exportName.length() - suffix.length());
 						}
-						
+
 						final File positiveExportFile = new File(exportDirectory, exportName + ".pos" + suffix);
 						final File negativeExportFile = new File(exportDirectory, exportName + ".neg" + suffix);
-						
+
 						final Fasta positiveFasta = FastaUtils.extractSequences(
-							FastaUtils.readFasta(this.file), 
+							FastaUtils.readFasta(this.file),
 							this.getPositiveValuesId()
 						);
 						final Fasta negativeFasta = FastaUtils.extractSequences(
-							FastaUtils.readFasta(this.file), 
+							FastaUtils.readFasta(this.file),
 							this.getNegativeValuesId()
 						);
-						
+
 						FileUtils.writeStringToFile(positiveExportFile, writer.write(positiveFasta));
 						FileUtils.writeStringToFile(negativeExportFile, writer.write(negativeFasta));
 					}
-					
+
 					JOptionPane.showConfirmDialog(
-						this, 
+						this,
 						"Files correctly exported",
 						"Export Completed",
 						JOptionPane.OK_OPTION,
@@ -195,7 +196,7 @@ public class ExportDialog extends JDialog {
 					this.setVisible(false);
 				} catch (Exception e) {
 					JOptionPane.showConfirmDialog(
-						this, 
+						this,
 						"Error exporting file: " + e.getMessage(),
 						"Export Error",
 						JOptionPane.OK_OPTION,
@@ -207,214 +208,226 @@ public class ExportDialog extends JDialog {
 			throw new IllegalStateException("Incomplete configuration");
 		}
 	}
-	
+
 	private boolean isSingleExport() {
-		final Component selectedTabComponent = 
-			this.panelSequenceSelection.getSelectedComponent();
-		
+		final Component selectedTabComponent = this.panelSequenceSelection.getSelectedComponent();
+
 		return selectedTabComponent.equals(this.panelSingleSequence);
 	}
-	
+
 	private List<String> getSelectedValuesId() {
-		final List<String> values = new ArrayList<String>();
+		final List<String> values = new ArrayList<>();
+		
 		for (FastaSequenceWrapper wrapper : this.panelSingleSequence.getSelectedValues()) {
 			values.add(wrapper.getWrapped().getId());
 		}
-		
+
 		return values;
 	}
-	
+
 	private List<String> getPositiveValuesId() {
-		final List<String> values = new ArrayList<String>();
+		final List<String> values = new ArrayList<>();
+		
 		for (FastaSequenceWrapper wrapper : this.panelPositiveNegative.getPositiveValues()) {
 			values.add(wrapper.getWrapped().getId());
 		}
-		
+
 		return values;
 	}
-	
+
 	private List<String> getNegativeValuesId() {
-		final List<String> values = new ArrayList<String>();
+		final List<String> values = new ArrayList<>();
+		
 		for (FastaSequenceWrapper wrapper : this.panelPositiveNegative.getNegativeValues()) {
 			values.add(wrapper.getWrapped().getId());
 		}
-		
+
 		return values;
 	}
-	
+
 	private File getExportDirectory() {
 		return new File(this.getExportDirectoryPath());
 	}
-	
+
 	private String getExportDirectoryPath() {
 		return this.txtExportDirectory.getText();
 	}
-	
+
 	private String getExportName() {
 		return this.txtExportName.getText();
 	}
-	
+
 	private ALTEROutputConfiguration getALTERConfiguration() {
 		return new ALTEROutputConfiguration(
-			(String) this.cmbOS.getSelectedItem(), 
-			(String) this.cmbProgram.getSelectedItem(), 
+			(String) this.cmbOS.getSelectedItem(),
+			(String) this.cmbProgram.getSelectedItem(),
 			(String) this.cmbFormat.getSelectedItem()
 		);
 	}
-	
+
 	private JPanel createExportPanel() {
 		final JPanel panel = new JPanel();
 		panel.setBorder(BorderFactory.createTitledBorder("Export options"));
-		
+
 		final GroupLayout layout = new GroupLayout(panel);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		panel.setLayout(layout);
-		
+
 		final JLabel lblOS = new JLabel("O.S.");
 		lblOS.setToolTipText("Operative system");
-		
+
 		final JLabel lblProgram = new JLabel("Program");
 		lblProgram.setToolTipText("Output program");
-		
+
 		final JLabel lblFormat = new JLabel("Format");
 		lblFormat.setToolTipText("Output format");
-		
+
 		this.cmbOS = new JComboBox<>(
 			new Vector<>(ProgramOptions.getSO())
 		);
-		
-		final Vector<String> outputPrograms = 
-			new Vector<String>(ProgramOptions.getOutputPrograms());
+
+		final Vector<String> outputPrograms = new Vector<String>(ProgramOptions.getOutputPrograms());
 		Collections.sort(outputPrograms);
-		
+
 		this.cmbProgram = new JComboBox<>(outputPrograms);
 		this.cmbProgram.setSelectedIndex(0);
-		
+
 		final Vector<String> formats = new Vector<String>(
 			ProgramOptions.getOutputProgramFormats((String) cmbProgram.getSelectedItem())
 		);
 		Collections.sort(formats);
 		this.cmbFormat = new JComboBox<>(formats);
-		
-		layout.setVerticalGroup(layout.createSequentialGroup()
-			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(lblOS)
-				.addComponent(this.cmbOS)
-			)
-			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(lblProgram)
-				.addComponent(this.cmbProgram)
-			)
-			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(lblFormat)
-				.addComponent(this.cmbFormat)
-			)
+
+		layout.setVerticalGroup(
+			layout.createSequentialGroup()
+				.addGroup(
+					layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblOS)
+						.addComponent(this.cmbOS)
+				)
+				.addGroup(
+					layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblProgram)
+						.addComponent(this.cmbProgram)
+				)
+				.addGroup(
+					layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblFormat)
+						.addComponent(this.cmbFormat)
+				)
 		);
-		layout.setHorizontalGroup(layout.createSequentialGroup()
-			.addGroup(layout.createParallelGroup()
-				.addComponent(lblOS)
-				.addComponent(lblProgram)
-				.addComponent(lblFormat)
-			)
-			.addGroup(layout.createParallelGroup()
-				.addComponent(this.cmbOS)
-				.addComponent(this.cmbProgram)
-				.addComponent(this.cmbFormat)
-			)
+		layout.setHorizontalGroup(
+			layout.createSequentialGroup()
+				.addGroup(
+					layout.createParallelGroup()
+						.addComponent(lblOS)
+						.addComponent(lblProgram)
+						.addComponent(lblFormat)
+				)
+				.addGroup(
+					layout.createParallelGroup()
+						.addComponent(this.cmbOS)
+						.addComponent(this.cmbProgram)
+						.addComponent(this.cmbFormat)
+				)
 		);
-		
-		this.cmbProgram.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final String currentProgram = (String) cmbProgram.getSelectedItem();
-				final String currentFormat = (String) cmbFormat.getSelectedItem();
-				
-				final Vector<String> formats = new Vector<String>( 
-					ProgramOptions.getOutputProgramFormats(currentProgram)
-				);
-				Collections.sort(formats);
-				
-				cmbFormat.setModel(new DefaultComboBoxModel<>(formats));
-				
-				if (formats.contains(currentFormat)) {
-					cmbFormat.setSelectedIndex(formats.indexOf(currentFormat));
+
+		this.cmbProgram.addActionListener(
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					final String currentProgram = (String) cmbProgram.getSelectedItem();
+					final String currentFormat = (String) cmbFormat.getSelectedItem();
+
+					final Vector<String> formats = new Vector<String>(
+						ProgramOptions.getOutputProgramFormats(currentProgram)
+					);
+					Collections.sort(formats);
+
+					cmbFormat.setModel(new DefaultComboBoxModel<>(formats));
+
+					if (formats.contains(currentFormat)) {
+						cmbFormat.setSelectedIndex(formats.indexOf(currentFormat));
+					}
 				}
 			}
-		});
-		
+		);
+
 		return panel;
 	}
-	
+
 	private JTabbedPane createSequenceSelectionPanel() throws ParseException, IOException {
 		this.panelSequenceSelection = new JTabbedPane();
-		
+
 		this.panelSingleSequence = this.createSinglePanel();
 		this.panelPositiveNegative = this.createPosNegPanel();
-		
+
 		this.panelSequenceSelection.addTab(
-			ExportDialog.TAB_LABEL_SINGLE_EXPORT, 
+			ExportDialog.TAB_LABEL_SINGLE_EXPORT,
 			this.panelSingleSequence
 		);
 		this.panelSequenceSelection.addTab(
-			ExportDialog.TAB_LABEL_POSITIVE_NEGATIVE_EXPORT, 
+			ExportDialog.TAB_LABEL_POSITIVE_NEGATIVE_EXPORT,
 			this.panelPositiveNegative
 		);
-		
-		this.panelSequenceSelection.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				ExportDialog.this.updateButtonExport();
+
+		this.panelSequenceSelection.addChangeListener(
+			new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					ExportDialog.this.updateButtonExport();
+				}
 			}
-		});
-		
-		this.panelSingleSequence.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				ExportDialog.this.updateButtonExport();
+		);
+
+		this.panelSingleSequence.addChangeListener(
+			new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					ExportDialog.this.updateButtonExport();
+				}
 			}
-		});
-		
-		this.panelPositiveNegative.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				ExportDialog.this.updateButtonExport();
+		);
+
+		this.panelPositiveNegative.addChangeListener(
+			new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					ExportDialog.this.updateButtonExport();
+				}
 			}
-		});
-		
+		);
+
 		return this.panelSequenceSelection;
 	}
-	
+
 	private SingleListSelectionPanel<FastaSequenceWrapper> createSinglePanel() throws ParseException, IOException {
-		final List<FastaSequence> fastaSeqList = 
-			FastaUtils.listFastaSequences(FastaUtils.readFasta(this.file));
-		
-		final List<FastaSequenceWrapper> fastaSeqWrappedList = 
-			new ArrayList<FastaSequenceWrapper>(fastaSeqList.size());
+		final List<FastaSequence> fastaSeqList = FastaUtils.listFastaSequences(FastaUtils.readFasta(this.file));
+
+		final List<FastaSequenceWrapper> fastaSeqWrappedList = new ArrayList<>(fastaSeqList.size());
 		for (FastaSequence sequence : fastaSeqList) {
 			fastaSeqWrappedList.add(new FastaSequenceWrapper(sequence));
 		}
-		
-		return new SingleListSelectionPanel<FastaSequenceWrapper>(
-			fastaSeqWrappedList, 
+
+		return new SingleListSelectionPanel<>(
+			fastaSeqWrappedList,
 			"Selected Sequences",
 			"Unselected Sequences"
 		);
 	}
 
 	private DoubleListSelectionPanel<FastaSequenceWrapper> createPosNegPanel() throws ParseException, IOException {
-		final List<FastaSequence> fastaSeqList = 
-			FastaUtils.listFastaSequences(FastaUtils.readFasta(this.file));
-		
-		final List<FastaSequenceWrapper> fastaSeqWrappedList = 
-			new ArrayList<FastaSequenceWrapper>(fastaSeqList.size());
+		final List<FastaSequence> fastaSeqList = FastaUtils.listFastaSequences(FastaUtils.readFasta(this.file));
+
+		final List<FastaSequenceWrapper> fastaSeqWrappedList = new ArrayList<>(fastaSeqList.size());
 		for (FastaSequence sequence : fastaSeqList) {
 			fastaSeqWrappedList.add(new FastaSequenceWrapper(sequence));
 		}
-		
-		return new DoubleListSelectionPanel<FastaSequenceWrapper>(
-			fastaSeqWrappedList, 
-			"Positive Sequences", 
+
+		return new DoubleListSelectionPanel<>(
+			fastaSeqWrappedList,
+			"Positive Sequences",
 			"Unselected Sequences",
 			"Negative Sequences"
 		);
@@ -423,10 +436,9 @@ public class ExportDialog extends JDialog {
 	private JPanel createPathPanel() {
 		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-		
-		final String exportDefaultPath = 
-			Configuration.getSystemConfiguration().getExportDefaultPath();
-		
+
+		final String exportDefaultPath = Configuration.getSystemConfiguration().getExportDefaultPath();
+
 		final JLabel lblPath = new JLabel("Export to ");
 		this.txtExportDirectory = new JTextField(exportDefaultPath);
 		this.txtExportDirectory.setToolTipText(exportDefaultPath);
@@ -434,104 +446,110 @@ public class ExportDialog extends JDialog {
 
 		final AbstractAction selectExportDirectoryAction = new AbstractAction("Select...") {
 			private static final long serialVersionUID = 1L;
-			
+
 			private File file = new File(exportDefaultPath);
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				final JFileChooser fileChooser = new JFileChooser(this.file);
 				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				fileChooser.setFileHidingEnabled(true);
 				fileChooser.setMultiSelectionEnabled(false);
-				
+
 				final JFrame parentFrame = Workbench.getInstance().getMainFrame();
 				if (fileChooser.showOpenDialog(parentFrame) != JFileChooser.APPROVE_OPTION) {
 					this.file = fileChooser.getSelectedFile();
-					
+
 					txtExportDirectory.setText(this.file.getAbsolutePath());
 					txtExportDirectory.setToolTipText(this.file.getAbsolutePath());
-					
+
 					ExportDialog.this.updateButtonExport();
 				}
 			}
 		};
-		
+
 		final JButton btnPath = new JButton(selectExportDirectoryAction);
 		this.txtExportDirectory.addActionListener(selectExportDirectoryAction);
-		
+
 		String name = this.file.getName();
 		if (name.toLowerCase().endsWith(".fasta")) {
 			name = name.substring(0, name.length() - 6);
 		}
-		
+
 		final JLabel lblName = new JLabel(" with name ");
 		this.txtExportName = new JTextField(name);
-		this.txtExportName.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				ExportDialog.this.updateButtonExport();
+		this.txtExportName.addKeyListener(
+			new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					ExportDialog.this.updateButtonExport();
+				}
 			}
-		});
-		
+		);
+
 		panel.add(lblPath);
 		panel.add(this.txtExportDirectory);
 		panel.add(btnPath);
 		panel.add(lblName);
 		panel.add(this.txtExportName);
-		
+
 		return panel;
 	}
-	
+
 	private JPanel createButtonsPanel() {
 		final JPanel panel = new JPanel();
 		panel.setBorder(BorderFactory.createEtchedBorder());
-		
-		final JButton btnCancel = new JButton(new AbstractAction("Cancel") {
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ExportDialog.this.setVisible(false);
+		final JButton btnCancel = new JButton(
+			new AbstractAction("Cancel") {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					ExportDialog.this.setVisible(false);
+				}
 			}
-		});
-		this.btnExport = new JButton(new AbstractAction("Export") {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ExportDialog.this.doExport();
+		);
+		this.btnExport = new JButton(
+			new AbstractAction("Export") {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					ExportDialog.this.doExport();
+				}
 			}
-		});
+		);
 		this.btnExport.setEnabled(this.isConfigurationComplete());
-		
+
 		panel.add(this.btnExport);
 		panel.add(btnCancel);
-		
+
 		return panel;
 	}
 
 	private static class FastaSequenceWrapper {
 		private final FastaSequence wrapped;
-		
+
 		public FastaSequenceWrapper(FastaSequence sequence) {
 			this.wrapped = sequence;
 		}
-		
+
 		public FastaSequence getWrapped() {
 			return wrapped;
 		}
-		
+
 		@Override
 		public String toString() {
 			return wrapped.getId() + " " + wrapped.getDesc();
 		}
 	}
-	
+
 	private final static class ALTEROutputConfiguration {
 		private final String os;
 		private final String program;
 		private final String format;
-		
+
 		public ALTEROutputConfiguration(String os, String program, String format) {
 			this.os = os;
 			this.program = program;

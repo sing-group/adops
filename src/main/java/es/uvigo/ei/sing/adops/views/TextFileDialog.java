@@ -40,7 +40,7 @@ public class TextFileDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 
 	private final File file;
-	
+
 	public TextFileDialog(File file) {
 		super();
 		this.file = file;
@@ -53,8 +53,10 @@ public class TextFileDialog extends JDialog {
 		this.init();
 	}
 
-	public TextFileDialog(File file, Dialog owner, String title, boolean modal,
-			GraphicsConfiguration gc) {
+	public TextFileDialog(
+		File file, Dialog owner, String title, boolean modal,
+		GraphicsConfiguration gc
+	) {
 		super(owner, title, modal, gc);
 		this.file = file;
 		this.init();
@@ -84,15 +86,16 @@ public class TextFileDialog extends JDialog {
 		this.init();
 	}
 
-	public TextFileDialog(File file, Frame arg0, String arg1, boolean arg2,
-			GraphicsConfiguration arg3) {
-		super(arg0, arg1, arg2, arg3);
+	public TextFileDialog(
+		File file, Frame owner, String title, boolean modal, GraphicsConfiguration gc
+	) {
+		super(owner, title, modal, gc);
 		this.file = file;
 		this.init();
 	}
 
-	public TextFileDialog(File file, Frame arg0, String arg1, boolean arg2) {
-		super(arg0, arg1, arg2);
+	public TextFileDialog(File file, Frame owner, String title, boolean modal) {
+		super(owner, title, modal);
 		this.file = file;
 		this.init();
 	}
@@ -115,8 +118,10 @@ public class TextFileDialog extends JDialog {
 		this.init();
 	}
 
-	public TextFileDialog(File file, Window owner, String title,
-			ModalityType modalityType, GraphicsConfiguration gc) {
+	public TextFileDialog(
+		File file, Window owner, String title,
+		ModalityType modalityType, GraphicsConfiguration gc
+	) {
 		super(owner, title, modalityType, gc);
 		this.file = file;
 		this.init();
@@ -142,27 +147,31 @@ public class TextFileDialog extends JDialog {
 
 	private void init() {
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		
+
 		final JPanel content = new JPanel(new BorderLayout());
 		final JPanel buttonsPanel = new JPanel();
-		
-		buttonsPanel.add(new JButton(new AbstractAction("Close") {
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				TextFileDialog.this.setVisible(false);
-			}
-		}));
-		
+		buttonsPanel.add(
+			new JButton(
+				new AbstractAction("Close") {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						TextFileDialog.this.setVisible(false);
+					}
+				}
+			)
+		);
+
 		content.add(new TextFileViewer(this.file), BorderLayout.CENTER);
 		content.add(buttonsPanel, BorderLayout.SOUTH);
-		
+
 		this.setContentPane(content);
-		
+
 		this.setMinimumSize(new Dimension(600, 400));
 		this.pack();
-		
+
 		this.setLocationRelativeTo(this.getOwner());
 	}
 }

@@ -22,26 +22,20 @@
 package es.uvigo.ei.sing.adops.operations;
 
 import es.uvigo.ei.aibench.core.Core;
-import es.uvigo.ei.aibench.core.clipboard.ClipboardItem;
+import es.uvigo.ei.aibench.core.clipboard.Clipboard;
 import es.uvigo.ei.aibench.core.operation.annotation.Direction;
 import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.Project;
 
-@Operation(
-	name = "Close Project",
-	description = "Remove a project from the application."
-)
+@Operation(name = "Close Project", description = "Remove a project from the application.")
 public class CloseProject {
-	@Port(
-		name = "Project",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Project to be closed"
-	)
+	
+	@Port(name = "Project", order = 1, direction = Direction.INPUT, allowNull = false, description = "Project to be closed")
 	public void closeProject(Project project) {
-		ClipboardItem item = Core.getInstance().getClipboard().getClipboardItem(project);
-		Core.getInstance().getClipboard().removeClipboardItem(item);
+		final Clipboard clipboard = Core.getInstance().getClipboard();
+		
+		clipboard.removeClipboardItem(clipboard.getClipboardItem(project));
 	}
+	
 }

@@ -48,120 +48,87 @@ public class MrBayesOperation extends ProcessOperation<MrBayesProcessManager, Mr
 	public MrBayesOperation() {
 		super(MrBayesConfiguration.class);
 	}
-	
-	@Port(
-		name = "FASTA File",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false
-	)
+
+	@Port(name = "FASTA File", order = 1, direction = Direction.INPUT, allowNull = false)
 	public void setInputFile(File fastaFile) {
 		super.setInputFile(fastaFile);
 	}
 
-	@Port(
-		name = "Output Folder",
-		order = 2,
-		direction = Direction.INPUT,
-		allowNull = false
-	)
+	@Port(name = "Output Folder", order = 2, direction = Direction.INPUT, allowNull = false)
 	public void setOutputFolder(File outputFolder) {
 		super.setOutputFolder(outputFolder);
 	}
-	
-	@Port(
-		name = "Generations",
-		order = 3,
-		direction = Direction.INPUT,
-		defaultValue = "500000"
-	)
+
+	@Port(name = "Generations", order = 3, direction = Direction.INPUT, defaultValue = "500000")
 	public void setGenerations(int ngen) {
 		this.configuration.setNumOfGenerations(ngen);
 	}
 
-	@Port(
-		name = "SumP Burnin",
-		order = 4,
-		direction = Direction.INPUT,
-		defaultValue = "1250"
-	)
+	@Port(name = "SumP Burnin", order = 4, direction = Direction.INPUT, defaultValue = "1250")
 	public void setPBurnin(int burnin) {
 		this.configuration.setPBurnin(burnin);
 	}
-	
-	@Port(
-		name = "SumT Burnin",
-		order = 5,
-		direction = Direction.INPUT,
-		defaultValue = "1250"
-	)
+
+	@Port(name = "SumT Burnin", order = 5, direction = Direction.INPUT, defaultValue = "1250")
 	public void setTBurnin(int burnin) {
 		this.configuration.setTBurnin(burnin);
 	}
-	
-	@Port(
-		name = "Use Std. Output",
-		order = 6,
-		direction = Direction.INPUT,
-		defaultValue = "true"
-	)
+
+	@Port(name = "Use Std. Output", order = 6, direction = Direction.INPUT, defaultValue = "true")
 	public void setUseStdOutput(boolean useStdOutput) {
 		if (useStdOutput)
 			this.addPrintStream(System.out);
 		else
 			this.removePrintStream(System.out);
 	}
-	
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 1000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 1000)
 	@Override
 	public MrBayesOutput call() throws OperationException, InterruptedException {
 		final MrBayesOutput output = new MrBayesOutput(this.getInputFile(), this.getOutputFolder());
 		this.process = MrBayesProcessManager.createManager(this.configuration);
-		
+
 		for (PrintStream ps : this.getPrintStreams()) {
 			this.process.addPrinter(ps);
 		}
-		
+
 		try {
 			this.checkInterrupted();
-			
+
 			DefaultFactory factory = new DefaultFactory();
 			Reader fastaReader = factory.getReader("linux", "clustal", "fasta", false, "logger");
 			Writer nexusWriter = factory.getWriter("linux", "mrbayes", "nexus", false, false, false, false, "logger");
-			
+
 			this.checkInterrupted();
-			
+
 			final String fastaString = FileUtils.readFileToString(this.getInputFile());
-			
+
 			this.checkInterrupted();
-	
+
 			final String nexusString = nexusWriter.write(fastaReader.read(fastaString));
 			FileUtils.writeStringToFile(output.getNexusFile(), nexusString);
-			
+
 			this.checkInterrupted();
-			
+
 			this.process.createMrBayesFile(output);
-			
+
 			this.checkInterrupted();
-			
+
 			output.setState(this.process.alignSequences(output));
-			
+
 			this.println("MrBayes output code: " + output.getState());
 			if (output.getState() == 134) {
 				throw new OperationException("", "Missing input. You are probably using a path too long.");
 			} else if (output.getState() != 0) {
 				throw new OperationException("", "Could not converge. Please, check output log.");
 			}
-			
+
 			this.checkInterrupted();
-			
+
 			this.process.buildSummary(output);
-			
+
 			this.checkInterrupted();
-			
+
 			return output;
 		} catch (OperationException oe) {
 			if (oe.getCause() instanceof InterruptedException) {
@@ -175,16 +142,15 @@ public class MrBayesOperation extends ProcessOperation<MrBayesProcessManager, Mr
 			throw new OperationException("", "I/O error while running MrBayes: " + ioe.getMessage(), ioe);
 		}
 	}
-	
+
 	@Override
 	protected void configureExperiment(Experiment experiment) {
 		super.configureExperiment(experiment);
-		
-//		this.setInputFile(experiment.getAlignedFastaFile());
+
 		this.setInputFile(experiment.getResult().getTCoffeeOutput().getAlignmentFile());
 		this.setOutputFolder(experiment.getFilesFolder());
 	}
-	
+
 	@Override
 	public Logger getLogger() {
 		return MrBayesOperation.LOGGER;

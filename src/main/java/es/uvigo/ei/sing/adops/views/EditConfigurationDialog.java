@@ -40,7 +40,7 @@ public class EditConfigurationDialog extends JDialog {
 	private final HasConfiguration hasConfiguration;
 
 	private EditConfigurationView editConfigurationView;
-	
+
 	private JButton btnClose;
 
 	public EditConfigurationDialog(HasConfiguration hasConfiguration, boolean modifiable) {
@@ -57,8 +57,10 @@ public class EditConfigurationDialog extends JDialog {
 		this.init(modifiable);
 	}
 
-	public EditConfigurationDialog(HasConfiguration hasConfiguration, Dialog owner, String title, boolean modal,
-			GraphicsConfiguration gc, boolean modifiable) {
+	public EditConfigurationDialog(
+		HasConfiguration hasConfiguration, Dialog owner, String title, boolean modal,
+		GraphicsConfiguration gc, boolean modifiable
+	) {
 		super(owner, title, modal, gc);
 
 		this.hasConfiguration = hasConfiguration;
@@ -88,13 +90,15 @@ public class EditConfigurationDialog extends JDialog {
 
 	public EditConfigurationDialog(HasConfiguration hasConfiguration, Frame owner, boolean modal, boolean modifiable) {
 		super(owner, modal);
-		
+
 		this.hasConfiguration = hasConfiguration;
 		this.init(modifiable);
 	}
 
-	public EditConfigurationDialog(HasConfiguration hasConfiguration, Frame arg0, String arg1, boolean arg2,
-			GraphicsConfiguration arg3, boolean modifiable) {
+	public EditConfigurationDialog(
+		HasConfiguration hasConfiguration, Frame arg0, String arg1, boolean arg2,
+		GraphicsConfiguration arg3, boolean modifiable
+	) {
 		super(arg0, arg1, arg2, arg3);
 
 		this.hasConfiguration = hasConfiguration;
@@ -129,16 +133,20 @@ public class EditConfigurationDialog extends JDialog {
 		this.init(modifiable);
 	}
 
-	public EditConfigurationDialog(HasConfiguration hasConfiguration, Window owner, String title,
-			ModalityType modalityType, GraphicsConfiguration gc, boolean modifiable) {
+	public EditConfigurationDialog(
+		HasConfiguration hasConfiguration, Window owner, String title,
+		ModalityType modalityType, GraphicsConfiguration gc, boolean modifiable
+	) {
 		super(owner, title, modalityType, gc);
 
 		this.hasConfiguration = hasConfiguration;
 		this.init(modifiable);
 	}
 
-	public EditConfigurationDialog(HasConfiguration hasConfiguration, Window owner, String title,
-			ModalityType modalityType, boolean modifiable) {
+	public EditConfigurationDialog(
+		HasConfiguration hasConfiguration, Window owner, String title,
+		ModalityType modalityType, boolean modifiable
+	) {
 		super(owner, title, modalityType);
 
 		this.hasConfiguration = hasConfiguration;
@@ -158,37 +166,39 @@ public class EditConfigurationDialog extends JDialog {
 		this.hasConfiguration = hasConfiguration;
 		this.init(modifiable);
 	}
-	
+
 	private void init(boolean modifiable) {
 		this.editConfigurationView = new EditConfigurationView(this.hasConfiguration, modifiable);
-		this.btnClose = new JButton(new AbstractAction("Close") {
-			private static final long serialVersionUID = 1L;
+		this.btnClose = new JButton(
+			new AbstractAction("Close") {
+				private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				EditConfigurationDialog.this.setVisible(false);
+				@Override
+				public void actionPerformed(ActionEvent event) {
+					EditConfigurationDialog.this.setVisible(false);
+				}
 			}
-		});
+		);
 		editConfigurationView.getButtonsPanel().add(btnClose);
-		
+
 		this.setContentPane(editConfigurationView);
 		this.setMinimumSize(new Dimension(600, 400));
 		this.pack();
 		this.setLocationRelativeTo(this.getOwner());
 	}
-	
+
 	public JButton getBtnClose() {
 		return btnClose;
 	}
-	
+
 	public JButton getBtnSave() {
 		return this.editConfigurationView.getBtnSave();
 	}
-	
+
 	public JButton getBtnExport() {
 		return this.editConfigurationView.getBtnExport();
 	}
-	
+
 	public JButton getBtnReset() {
 		return this.editConfigurationView.getBtnReset();
 	}

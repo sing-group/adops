@@ -54,8 +54,10 @@ public class CheckProgramsDialog extends JDialog {
 		this.init();
 	}
 
-	public CheckProgramsDialog(HasConfiguration hasConfiguration, Dialog owner, String title, boolean modal,
-			GraphicsConfiguration gc) {
+	public CheckProgramsDialog(
+		HasConfiguration hasConfiguration, Dialog owner, String title, boolean modal,
+		GraphicsConfiguration gc
+	) {
 		super(owner, title, modal, gc);
 
 		this.hasConfiguration = hasConfiguration;
@@ -85,21 +87,23 @@ public class CheckProgramsDialog extends JDialog {
 
 	public CheckProgramsDialog(HasConfiguration hasConfiguration, Frame owner, boolean modal) {
 		super(owner, modal);
-		
-		this.hasConfiguration = hasConfiguration;
-		this.init();
-	}
-
-	public CheckProgramsDialog(HasConfiguration hasConfiguration, Frame arg0, String arg1, boolean arg2,
-			GraphicsConfiguration arg3) {
-		super(arg0, arg1, arg2, arg3);
 
 		this.hasConfiguration = hasConfiguration;
 		this.init();
 	}
 
-	public CheckProgramsDialog(HasConfiguration hasConfiguration, Frame arg0, String arg1, boolean arg2) {
-		super(arg0, arg1, arg2);
+	public CheckProgramsDialog(
+		HasConfiguration hasConfiguration, Frame owner, String title, boolean modal,
+        GraphicsConfiguration gc
+	) {
+		super(owner, title, modal, gc);
+
+		this.hasConfiguration = hasConfiguration;
+		this.init();
+	}
+
+	public CheckProgramsDialog(HasConfiguration hasConfiguration, Frame owner, String title, boolean modal) {
+		super(owner, title, modal);
 
 		this.hasConfiguration = hasConfiguration;
 		this.init();
@@ -126,16 +130,20 @@ public class CheckProgramsDialog extends JDialog {
 		this.init();
 	}
 
-	public CheckProgramsDialog(HasConfiguration hasConfiguration, Window owner, String title,
-			ModalityType modalityType, GraphicsConfiguration gc) {
+	public CheckProgramsDialog(
+		HasConfiguration hasConfiguration, Window owner, String title,
+		ModalityType modalityType, GraphicsConfiguration gc
+	) {
 		super(owner, title, modalityType, gc);
 
 		this.hasConfiguration = hasConfiguration;
 		this.init();
 	}
 
-	public CheckProgramsDialog(HasConfiguration hasConfiguration, Window owner, String title,
-			ModalityType modalityType) {
+	public CheckProgramsDialog(
+		HasConfiguration hasConfiguration, Window owner, String title,
+		ModalityType modalityType
+	) {
 		super(owner, title, modalityType);
 
 		this.hasConfiguration = hasConfiguration;
@@ -155,21 +163,22 @@ public class CheckProgramsDialog extends JDialog {
 		this.hasConfiguration = hasConfiguration;
 		this.init();
 	}
-	
+
 	private void init() {
 		this.checkProgramsView = new CheckProgramsView(this.hasConfiguration.getConfiguration());
-		final JButton btnClose = new JButton(new AbstractAction("Close") {
-			private static final long serialVersionUID = 1L;
+		final JButton btnClose = new JButton(
+			new AbstractAction("Close") {
+				private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				CheckProgramsDialog.this.setVisible(false);
+				@Override
+				public void actionPerformed(ActionEvent event) {
+					CheckProgramsDialog.this.setVisible(false);
+				}
 			}
-		});
+		);
 		this.checkProgramsView.getButtonsPanel().add(btnClose);
-		
+
 		this.setContentPane(this.checkProgramsView);
-//		this.setMinimumSize(this.getContentPane().getMinimumSize());
 		this.pack();
 		this.setLocationRelativeTo(this.getOwner());
 	}

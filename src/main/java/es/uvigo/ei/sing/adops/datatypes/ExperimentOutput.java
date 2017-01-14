@@ -37,7 +37,7 @@ import es.uvigo.ei.aibench.core.datatypes.annotation.Clipboard;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
 
-@Datatype(structure=Structure.COMPLEX, namingMethod = "getName")
+@Datatype(structure = Structure.COMPLEX, namingMethod = "getName")
 public class ExperimentOutput extends AbstractOperationOutput {
 	private static final String FILE_OUTPUT_ALIGNMENT = "aligned.fasta";
 	private static final String FILE_OUTPUT_PROTEIN_ALIGNMENT_FASTA = "aligned.prot.fasta";
@@ -49,71 +49,72 @@ public class ExperimentOutput extends AbstractOperationOutput {
 	private static final String FILE_OUTPUT_PSRF = "mrbayes.log.psrf";
 	private static final String FILE_OUTPUT_CODEML = "codeml.out";
 	private static final String FILE_OUTPUT_CODEML_SUMMARY = "codeml.sum";
-	
+
 	private TCoffeeOutput tCoffeeOutput;
 	private MrBayesOutput mrBayesOutput;
 	private CodeMLOutput codeMLOutput;
-	
+
 	private boolean finished;
-	
+
 	private Experiment experiment;
-	
+
 	public ExperimentOutput(Experiment experiment) {
 		super(0);
-		
+
 		this.experiment = experiment;
-		
+
 		this.finished = false;
 		this.deleted = false;
-		
+
 		this.tCoffeeOutput = new TCoffeeOutput(
-			experiment.getFastaFile(), 
+			experiment.getFastaFile(),
 			experiment.getFilesFolder(),
 			experiment.getConfiguration().getTCoffeeConfiguration().getAlignMethod()
 		);
 		this.mrBayesOutput = new MrBayesOutput(this.tCoffeeOutput.getAlignmentFile(), experiment.getFilesFolder());
 		this.codeMLOutput = new CodeMLOutput(
-		this.tCoffeeOutput.getAlignmentFile(), experiment.getFilesFolder(),0);
+			this.tCoffeeOutput.getAlignmentFile(), experiment.getFilesFolder(), 0
+		);
 
 		experiment.setResult(this);
 	}
-	
+
 	public String getName() {
 		return "Experiment Result";
 	}
 
 	public void setTCoffeeOutput(TCoffeeOutput tCoffeeOutput) {
 		this.tCoffeeOutput = tCoffeeOutput;
-		
+
 		this.setChanged();
 		this.notifyObservers();
 	}
-	
+
 	public void setMrBayesOutput(MrBayesOutput mrBayesOutput) {
 		this.mrBayesOutput = mrBayesOutput;
-		
+
 		this.setChanged();
 		this.notifyObservers();
 	}
-	
+
 	public void setCodeMLOutput(CodeMLOutput codeMLOutput) {
 		this.codeMLOutput = codeMLOutput;
-		
+
 		this.setChanged();
 		this.notifyObservers();
 	}
 
 	public void setFinished(boolean finished) {
 		this.finished = finished;
-		
+
 		this.setChanged();
 		this.notifyObservers();
 	}
-	
+
 	public boolean isFinished() {
 		return finished;
 	}
-	
+
 	@Clipboard(name = "Log File", order = 1)
 	public ConstantDatatype getLogFileData() {
 		if (this.getLogFile().exists()) {
@@ -122,7 +123,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "Alignment File", order = 2)
 	public ConstantDatatype getRenamedAlignedFastaFileData() {
 		if (this.getRenamedAlignedFastaFile().exists()) {
@@ -131,7 +132,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "Protein Alignment Fasta File", order = 3)
 	public ConstantDatatype getRenamedAlignedProteinFastaFileData() {
 		if (this.getRenamedAlignedProteinFastaFile().exists()) {
@@ -140,7 +141,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "Protein Alignment Aln File", order = 4)
 	public ConstantDatatype getRenamedAlignedProteinAlnFileData() {
 		if (this.getRenamedAlignedProteinAlnFile().exists()) {
@@ -149,7 +150,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "PSRF File", order = 5)
 	public ConstantDatatype getPsrfFileData() {
 		if (this.getPsrfFile().exists()) {
@@ -158,7 +159,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "MrBayes Consensus Tree", order = 6)
 	public ConstantDatatype getRenamedTreeFileData() {
 		if (this.getRenamedTreeFile().exists()) {
@@ -167,7 +168,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "CodeML Summary", order = 7)
 	public ConstantDatatype getCodeMLSummaryFileData() {
 		if (this.getCodeMLSummaryFile().exists()) {
@@ -176,7 +177,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "CodeML Output File", order = 8)
 	public ConstantDatatype getCodeMLOutputFileData() {
 		if (this.getCodeMLOutputFile().exists()) {
@@ -185,7 +186,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "Summary File", order = 9)
 	public ConstantDatatype getSummaryFileData() {
 		if (this.getSummaryFile().exists()) {
@@ -194,7 +195,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "T-Coffee Output", order = 10)
 	public ConstantDatatype getTCoffeeOutputData() {
 		if (this.getTCoffeeOutput().isComplete()) {
@@ -203,7 +204,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "MrBayes Output", order = 11)
 	public ConstantDatatype getMrBayesOutputData() {
 		if (this.getMrBayesOutput().isComplete()) {
@@ -212,7 +213,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	@Clipboard(name = "CodeML Output", order = 12)
 	public ConstantDatatype getCodeMLOutputData() {
 		if (this.getCodeMLOutput().isComplete()) {
@@ -221,90 +222,72 @@ public class ExperimentOutput extends AbstractOperationOutput {
 			return null;
 		}
 	}
-	
+
 	public File getLogFile() {
-		//return this.logFile;
+		// return this.logFile;
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_LOG);
 	}
-	
-//	@Clipboard(name = "Summary File", order=1)
-	public File getSummaryFile () {
-//		return this.summaryFile;
+
+	public File getSummaryFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_SUMMARY);
 	}
-	
-//	@Clipboard(name = "MrBayes Psrf File", order=5)
-	public File getPsrfFile () {
-//		return this.psrfFile;
+
+	public File getPsrfFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_PSRF);
 	}
-	
-//	@Clipboard(name = "CodeML Output Summary", order=7)
-	public File getCodeMLSummaryFile () {
+
+	public File getCodeMLSummaryFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_CODEML_SUMMARY);
 	}
-	
-//	@Clipboard(name = "CodeML Output File", order=8)
-	public File getCodeMLOutputFile () {
+
+	public File getCodeMLOutputFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_CODEML);
 	}
-	
-//	@Clipboard(name="T-Coffee Output", order=9)
+
 	public TCoffeeOutput getTCoffeeOutput() {
 		return this.tCoffeeOutput;
 	}
 
-//	@Clipboard(name="MrBayes Output", order=10)
 	public MrBayesOutput getMrBayesOutput() {
 		return this.mrBayesOutput;
 	}
 
-//	@Clipboard(name="CodeML Output", order=11)
 	public CodeMLOutput getCodeMLOutput() {
 		return this.codeMLOutput;
 	}
-	
-//	@Clipboard(name = "Alignment File", order=2)
+
 	public File getRenamedAlignedFastaFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_ALIGNMENT);
-		//return renamedAlignedFastaFile;
 	}
 
-//	@Clipboard(name = "Protein Alignment Fasta File", order=3)
 	public File getRenamedAlignedProteinFastaFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_PROTEIN_ALIGNMENT_FASTA);
-		//return renamedAlignedProteinFastaFile;
 	}
 
-//	@Clipboard(name = "Protein Alignment Aln File", order=4)
 	public File getRenamedAlignedProteinAlnFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_PROTEIN_ALIGNMENT_ALN);
-		//return renamedAlignedProteinFastaFile;
 	}
-	
+
 	public File getRenamedScoreAsciiFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_SCORE_ASCII);
 	}
 
-//	@Clipboard(name = "MrBayes Consensus Tree", order=6)
 	public File getRenamedTreeFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_TREE);
-		//return renamedTreeFile;
 	}
-	
+
 	public AlignmentConfidences loadConfidences() throws ParseException, IOException {
-		if (this.getRenamedAlignedFastaFile().exists() 
-			&& this.getCodeMLSummaryFile().exists()
+		if (
+			this.getRenamedAlignedFastaFile().exists()
+				&& this.getCodeMLSummaryFile().exists()
 		) {
-			final Map<String, String> sequences = new LinkedHashMap<String, String>();
-			
-			final List<FastaSequence> fastaSequences = 
-				FastaUtils.listFastaSequences(
-					this.getRenamedAlignedProteinFastaFile(),
-					ExperimentOutput.class.getName()
-				);
-			
-			
+			final Map<String, String> sequences = new LinkedHashMap<>();
+
+			final List<FastaSequence> fastaSequences = FastaUtils.listFastaSequences(
+				this.getRenamedAlignedProteinFastaFile(),
+				ExperimentOutput.class.getName()
+			);
+
 			for (FastaSequence seq : fastaSequences) {
 				if (seq instanceof FastaSequence) {
 					FastaSequence sequence = (FastaSequence) seq;
@@ -316,27 +299,27 @@ public class ExperimentOutput extends AbstractOperationOutput {
 				} else {
 					Sequence sequence = (Sequence) seq;
 					sequences.put(sequence.getId() + " ", sequence.getData());
-					
+
 				}
 			}
-			
+
 			return this.getCodeMLOutput().getConfidences(sequences, this.getCodeMLSummaryFile());
 		} else {
 			return null;
 		}
 	}
-	
+
 	public int[] loadScores() throws IOException {
 		if (this.getRenamedScoreAsciiFile().exists()) {
 			final List<String> lines = FileUtils.readLines(this.getRenamedScoreAsciiFile());
-			
+
 			String score = "";
 			for (String line : lines) {
 				if (line.matches("c[o-]\\s+([0-9]|-)+")) {
 					score += line.split("\\s+")[1];
 				}
 			}
-			
+
 			final int scores[] = new int[score.length()];
 			for (int i = 0; i < score.length(); i++) {
 				try {
@@ -345,7 +328,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 					scores[i] = -1;
 				}
 			}
-			
+
 			return scores;
 		} else {
 			return null;

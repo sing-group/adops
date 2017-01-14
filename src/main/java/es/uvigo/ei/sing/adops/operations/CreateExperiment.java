@@ -30,58 +30,35 @@ import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.datatypes.Project;
 import es.uvigo.ei.sing.adops.datatypes.ProjectExperiment;
 
-@Operation(
-	name = "Create Experiment",
-	description = "An experiment allows you to perform an analysis of a FASTA file."
-)
+@Operation(name = "Create Experiment", description = "An experiment allows you to perform an analysis of a FASTA file.")
 public class CreateExperiment {
-	String name;
-	String sequences;
-	Project project;
+	private String name;
+	private String sequences;
+	private Project project;
 
-	@Port(
-		name = "Project",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Project to which the experiment belongs"
-	)
+	@Port(name = "Project", order = 1, direction = Direction.INPUT, allowNull = false, description = "Project to which the experiment belongs")
 	public void setProject(Project project) {
-			this.project = project;
+		this.project = project;
 	}
-	
-	@Port(
-		name = "Name",
-		order = 2,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Name of the experiment (must be unique for the project)"
-	)
+
+	@Port(name = "Name", order = 2, direction = Direction.INPUT, allowNull = false, description = "Name of the experiment (must be unique for the project)")
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@Port(
-		name = "Sequences",
-		order = 3,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Sequences to use (separated by white spaces)"
-	)
+	@Port(name = "Sequences", order = 3, direction = Direction.INPUT, allowNull = false, description = "Sequences to use (separated by white spaces)")
 	public void setSequences(String sequences) {
 		this.sequences = sequences;
 	}
 
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 1000
-	)
+	@Port(direction = Direction.OUTPUT, order = 1000)
 	public Experiment create() throws IOException, IllegalArgumentException {
-		ProjectExperiment experiment = new ProjectExperiment(this.project, this.name);
+		final ProjectExperiment experiment = new ProjectExperiment(this.project, this.name);
+		
 		experiment.getConfiguration().setInputSequences(this.sequences);
-//		experiment.getConfiguration().setProperty(Configuration.PROPERTY_INPUT_SEQUENCES, this.sequences);
 		experiment.storeAllProperties();
+		
 		return experiment;
 	}
-	
+
 }

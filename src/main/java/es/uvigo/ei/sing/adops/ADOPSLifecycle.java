@@ -48,19 +48,18 @@ import es.uvigo.ei.sing.adops.views.utils.CustomClipboardTreeModel;
 
 public class ADOPSLifecycle extends PluginLifecycle {
 	private final static Logger log = Logger.getLogger(ADOPSLifecycle.class);
-	
-	private final static Class<?>[] CLIPBOARD_ORDER = new Class<?>[]{ 
-		Project.class, 
-		BatchProject.class 
+
+	private final static Class<?>[] CLIPBOARD_ORDER = new Class<?>[] {
+		Project.class,
+		BatchProject.class
 	};
-	private final static Map<Class<?>, String> CLIPBOARD_MAPPING = 
-		new HashMap<Class<?>, String>(ADOPSLifecycle.CLIPBOARD_ORDER.length+1, 1f);
-	
+	private final static Map<Class<?>, String> CLIPBOARD_MAPPING = new HashMap<>(ADOPSLifecycle.CLIPBOARD_ORDER.length + 1, 1f);
+
 	static {
-		ADOPSLifecycle.CLIPBOARD_MAPPING.put(ADOPSLifecycle.CLIPBOARD_ORDER[0], "Projects");
-		ADOPSLifecycle.CLIPBOARD_MAPPING.put(ADOPSLifecycle.CLIPBOARD_ORDER[1], "Batch Projects");
+		CLIPBOARD_MAPPING.put(CLIPBOARD_ORDER[0], "Projects");
+		CLIPBOARD_MAPPING.put(CLIPBOARD_ORDER[1], "Batch Projects");
 	}
-	
+
 	@Override
 	protected void start() {
 		try {
@@ -77,40 +76,44 @@ public class ADOPSLifecycle extends PluginLifecycle {
 		} catch (Exception e) {
 			log.warn("Tiff image reader could not be registered", e);
 		}
-		
-		if (System.getProperty("aibench.nogui") != null) return;
-		
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				while (Workbench.getInstance().getMainFrame() == null) {
-					Thread.yield();
-				}
-				
-				final JTree tree = Workbench.getInstance().getTreeManager().getAIBenchClipboardTree();
-				
-				final CustomClipboardTreeModel treeModel = new CustomClipboardTreeModel(
-					ADOPSLifecycle.CLIPBOARD_ORDER, ADOPSLifecycle.CLIPBOARD_MAPPING, true, true
-				);
-				for (Class<?> clazz : CLIPBOARD_ORDER) {
-					treeModel.addAutoShow(clazz);
-				}
-//				treeModel.addAutoShow(Project.class);
-//				treeModel.addAutoShow(BatchProject.class);
-				
-				tree.setModel(treeModel);
-				
-				ClipboardViewsMouseListener.setAsDefaultClipboardTreeListener();
-				final JMenu menu = Workbench.getInstance().getMenuBar().getMenu(0);
-				menu.addSeparator();
-				menu.add(new JMenuItem(new AbstractAction("Exit") {
-					private static final long serialVersionUID = 1L;
 
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						System.exit(0);
+		if (System.getProperty("aibench.nogui") != null)
+			return;
+
+		SwingUtilities.invokeLater(
+			new Runnable() {
+				public void run() {
+					while (Workbench.getInstance().getMainFrame() == null) {
+						Thread.yield();
 					}
-				}));
+
+					final JTree tree = Workbench.getInstance().getTreeManager().getAIBenchClipboardTree();
+
+					final CustomClipboardTreeModel treeModel = new CustomClipboardTreeModel(
+						CLIPBOARD_ORDER, CLIPBOARD_MAPPING, true, true
+					);
+					for (Class<?> clazz : CLIPBOARD_ORDER) {
+						treeModel.addAutoShow(clazz);
+					}
+					tree.setModel(treeModel);
+
+					ClipboardViewsMouseListener.setAsDefaultClipboardTreeListener();
+					final JMenu menu = Workbench.getInstance().getMenuBar().getMenu(0);
+					menu.addSeparator();
+					menu.add(
+						new JMenuItem(
+							new AbstractAction("Exit") {
+								private static final long serialVersionUID = 1L;
+
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									System.exit(0);
+								}
+							}
+						)
+					);
+				}
 			}
-		});
+		);
 	}
 }

@@ -31,6 +31,6 @@ public interface IConfiguration {
 	public abstract void setProperty(String key, String value);
 
 	public abstract Set<String> listProperties();
-	
+
 	public abstract void clear();
 }

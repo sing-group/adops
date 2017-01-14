@@ -32,45 +32,43 @@ public class AlignmentConfidences {
 	private final Map<String, String> sequences;
 	private final Map<String, Map<Integer, Confidence>> models;
 	private final Map<Integer, Integer> movedIndexes;
-	
+
 	public AlignmentConfidences(Map<String, String> sequences) {
-		super();
 		this.sequences = sequences;
-		this.models = new TreeMap<String, Map<Integer,Confidence>>();
-		this.movedIndexes = new HashMap<Integer, Integer>();
-		
-		
+		this.models = new TreeMap<>();
+		this.movedIndexes = new HashMap<>();
+
 		int maxSeqLength = Integer.MIN_VALUE;
-		
+
 		for (String sequence : sequences.values()) {
 			maxSeqLength = Math.max(maxSeqLength, sequence.length());
 		}
-		
+
 		int offset = 1;
 		for (int i = 0; i < maxSeqLength; i++) {
 			boolean hasSpace = false;
-			
+
 			for (String sequence : sequences.values()) {
 				if (sequence.length() <= i || sequence.charAt(i) == '-') {
 					hasSpace = true;
 					break;
 				}
 			}
-			
+
 			if (!hasSpace) {
 				this.movedIndexes.put(i, offset++);
 			}
 		}
 	}
-	
+
 	public Integer getMovedIndex(int index) {
 		return this.movedIndexes.get(index);
 	}
-	
+
 	public int sequenceLength() {
 		return this.sequences.values().iterator().next().length();
 	}
-	
+
 	public Map<String, String> getSequences() {
 		return Collections.unmodifiableMap(sequences);
 	}
@@ -78,15 +76,15 @@ public class AlignmentConfidences {
 	public void addModel(String id, Map<Integer, Confidence> model) {
 		this.models.put(id, model);
 	}
-	
+
 	public List<String> getModels() {
-		return new ArrayList<String>(this.models.keySet());
+		return new ArrayList<>(this.models.keySet());
 	}
-	
+
 	public boolean hasModels() {
 		return !this.models.isEmpty();
 	}
-	
+
 	public Map<Integer, Confidence> getModel(String id) {
 		return Collections.unmodifiableMap(this.models.get(id));
 	}
@@ -99,7 +97,7 @@ public class AlignmentConfidences {
 			this.beb = beb;
 			this.neb = neb;
 		}
-		
+
 		public double getBeb() {
 			return beb;
 		}

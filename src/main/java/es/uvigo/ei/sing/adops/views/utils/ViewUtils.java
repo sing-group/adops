@@ -21,20 +21,16 @@
  */
 package es.uvigo.ei.sing.adops.views.utils;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.SwingUtilities;
 
-import javax.swing.JList;
+public class ViewUtils {
 
-public class NoneActionListener implements ActionListener {
-	private final JList<?> list;
-
-	public NoneActionListener(JList<?> list) {
-		this.list = list;
+	public static void safeGUIRun(Runnable runnable) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			runnable.run();
+		} else {
+			SwingUtilities.invokeLater(runnable);
+		}
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		this.list.clearSelection();
-	}
 }

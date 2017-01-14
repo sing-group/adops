@@ -28,13 +28,13 @@ import javax.swing.JList;
 
 public class AllActionListener implements ActionListener {
 	private final JList<?> list;
-	
+
 	public AllActionListener(JList<?> list) {
 		this.list = list;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		this.list.setSelectionInterval(0, this.list.getModel().getSize()-1);
+		this.list.setSelectionInterval(0, this.list.getModel().getSize() - 1);
 	}
 }

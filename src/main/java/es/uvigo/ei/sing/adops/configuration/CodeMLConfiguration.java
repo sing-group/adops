@@ -21,53 +21,40 @@
  */
 package es.uvigo.ei.sing.adops.configuration;
 
-
 public class CodeMLConfiguration extends SubConfiguration implements ExecutableConfiguration {
 	public static final String PROPERTIES_PREFIX = "codeml";
-	
+
 	public static final String PROPERTY_PARAMETERS = "params";
 	public static final String PROPERTY_MODELS = "models";
 
 	public CodeMLConfiguration(Configuration configuration) {
 		super(configuration, CodeMLConfiguration.PROPERTIES_PREFIX);
 	}
-	
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#getDirectory()
-	 */
+
 	@Override
 	public String getDirectory() {
 		return this.getProperty(ExecutableConfiguration.PROPERTY_DIRECTORY);
 	}
-	
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#setDirectory(java.lang.String)
-	 */
+
 	@Override
 	public void setDirectory(String directory) {
 		this.setProperty(ExecutableConfiguration.PROPERTY_DIRECTORY, directory);
 	}
-	
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#getBinary()
-	 */
+
 	@Override
 	public String getBinary() {
 		return this.getProperty(ExecutableConfiguration.PROPERTY_BINARY);
 	}
 
-	/* (non-Javadoc)
-	 * @see es.uvigo.ei.sing.adops.configuration.ExecutableConfiguration#setBinary(java.lang.String)
-	 */
 	@Override
 	public void setBinary(String binary) {
 		this.setProperty(ExecutableConfiguration.PROPERTY_BINARY, binary);
 	}
-	
+
 	public String getParameters() {
 		return this.getProperty(CodeMLConfiguration.PROPERTY_PARAMETERS);
 	}
-	
+
 	public void setParameters(String parameters) {
 		this.setProperty(CodeMLConfiguration.PROPERTY_PARAMETERS, parameters);
 	}
@@ -75,7 +62,7 @@ public class CodeMLConfiguration extends SubConfiguration implements ExecutableC
 	public String getModels() {
 		return this.getProperty(CodeMLConfiguration.PROPERTY_MODELS);
 	}
-	
+
 	public void setModels(String models) {
 		this.setProperty(CodeMLConfiguration.PROPERTY_MODELS, models);
 	}

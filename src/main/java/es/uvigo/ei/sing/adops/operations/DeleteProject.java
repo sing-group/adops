@@ -25,31 +25,21 @@ import java.io.IOException;
 
 import es.uvigo.ei.aibench.core.Core;
 import es.uvigo.ei.aibench.core.clipboard.Clipboard;
-import es.uvigo.ei.aibench.core.clipboard.ClipboardItem;
 import es.uvigo.ei.aibench.core.operation.annotation.Direction;
 import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.datatypes.Project;
 
-@Operation(
-	name = "Delete Project",
-	description = "Delete a project from disk along with all its files and experiments."
-)
+@Operation(name = "Delete Project", description = "Delete a project from disk along with all its files and experiments.")
 public class DeleteProject {
 
-	@Port(
-		name = "Project",
-		order = 1,
-		direction = Direction.INPUT,
-		allowNull = false,
-		description = "Project to be deleted"
-	)
+	@Port(name = "Project", order = 1, direction = Direction.INPUT, allowNull = false, description = "Project to be deleted")
 	public void deleteProject(Project project) throws IOException {
 		project.delete();
-		
+
 		final Clipboard clipboard = Core.getInstance().getClipboard();
-		final ClipboardItem clipboardProject = clipboard.getClipboardItem(project);
 		
-		clipboard.removeClipboardItem(clipboardProject);
+		clipboard.removeClipboardItem(clipboard.getClipboardItem(project));
 	}
+	
 }

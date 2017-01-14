@@ -60,33 +60,33 @@ public class DoubleListSelectionPanel<T> extends ListSelectionPanel {
 		gbcPositive.gridx = 0;
 		gbcPositive.weightx = 0.33d;
 		gbcPositive.weighty = 1d;
-		
+
 		gbcPosButtons.gridx = 1;
 		gbcPosButtons.weightx = 0d;
 		gbcPosButtons.ipadx = 10;
-		
+
 		gbcValues.fill = GridBagConstraints.BOTH;
 		gbcValues.gridx = 2;
 		gbcValues.weightx = 0.33d;
 		gbcValues.weighty = 1d;
-		
+
 		gbcNegButtons.gridx = 3;
 		gbcNegButtons.weightx = 0d;
 		gbcNegButtons.ipadx = 10;
-		
+
 		gbcNegative.fill = GridBagConstraints.BOTH;
 		gbcNegative.gridx = 4;
 		gbcNegative.weightx = 0.33d;
 		gbcNegative.weighty = 1d;
-		
+
 		this.lmPositive = new CustomListModel<>(new ArrayList<T>());
 		this.lmValues = new CustomListModel<>(values);
 		this.lmNegative = new CustomListModel<>(new ArrayList<T>());
-		
+
 		this.listPositive = new JList<>(this.lmPositive);
 		this.listValues = new JList<>(this.lmValues);
 		this.listNegative = new JList<>(this.lmNegative);
-		
+
 		final JLabel lblPositive = new JLabel(positiveTitle);
 		final JLabel lblValues = new JLabel(valuesTitle);
 		final JLabel lblNegative = new JLabel(negativeTitle);
@@ -96,12 +96,12 @@ public class DoubleListSelectionPanel<T> extends ListSelectionPanel {
 		lblPositive.setHorizontalAlignment(JLabel.LEFT);
 		lblValues.setHorizontalAlignment(JLabel.CENTER);
 		lblNegative.setHorizontalAlignment(JLabel.RIGHT);
-		
+
 		final Border border = BorderFactory.createEmptyBorder(4, 4, 4, 4);
 		lblNegative.setBorder(border);
 		lblValues.setBorder(border);
 		lblPositive.setBorder(border);
-		
+
 		final JPanel panelPositive = new JPanel(new BorderLayout());
 		final JPanel panelPositiveSelectors = createSelectionPanel(this.listPositive);
 		final JPanel panelValues = new JPanel(new BorderLayout());
@@ -111,52 +111,49 @@ public class DoubleListSelectionPanel<T> extends ListSelectionPanel {
 		panelPositive.setOpaque(false);
 		panelValues.setOpaque(false);
 		panelNegative.setOpaque(false);
-		
+
 		panelPositiveSelectors.setOpaque(false);
 		panelValuesSelectors.setOpaque(false);
 		panelNegativeSelectors.setOpaque(false);
-		
+
 		panelPositive.add(lblPositive, BorderLayout.NORTH);
 		panelPositive.add(new JScrollPane(listPositive), BorderLayout.CENTER);
 		panelPositive.add(panelPositiveSelectors, BorderLayout.SOUTH);
-		
+
 		panelValues.add(lblValues, BorderLayout.NORTH);
 		panelValues.add(new JScrollPane(listValues), BorderLayout.CENTER);
 		panelValues.add(panelValuesSelectors, BorderLayout.SOUTH);
-		
+
 		panelNegative.add(lblNegative, BorderLayout.NORTH);
 		panelNegative.add(new JScrollPane(listNegative), BorderLayout.CENTER);
 		panelNegative.add(panelNegativeSelectors, BorderLayout.SOUTH);
-		
-		final JPanel panelButtonsPositive = 
-			createButtonsPanel(listPositive, lmPositive, listValues, lmValues, false);
+
+		final JPanel panelButtonsPositive = createButtonsPanel(listPositive, lmPositive, listValues, lmValues, false);
 		panelButtonsPositive.setOpaque(false);
-		
-		final JPanel panelButtonsNegative = 
-			createButtonsPanel(listValues, lmValues, listNegative, lmNegative, true);
+
+		final JPanel panelButtonsNegative = createButtonsPanel(listValues, lmValues, listNegative, lmNegative, true);
 		panelButtonsNegative.setOpaque(false);
-		
+
 		this.add(panelPositive, gbcPositive);
 		this.add(panelButtonsPositive, gbcPosButtons);
 		this.add(panelValues, gbcValues);
 		this.add(panelButtonsNegative, gbcNegButtons);
 		this.add(panelNegative, gbcNegative);
-		
-		final ListModelChangedEventListener listModelChangedEventListener = 
-			new ListModelChangedEventListener(this);
+
+		final ListModelChangedEventListener listModelChangedEventListener = new ListModelChangedEventListener(this);
 		this.lmNegative.addListDataListener(listModelChangedEventListener);
 		this.lmValues.addListDataListener(listModelChangedEventListener);
 		this.lmPositive.addListDataListener(listModelChangedEventListener);
 	}
-	
+
 	public List<T> getNegativeValues() {
 		return this.lmNegative.getValues();
 	}
-	
+
 	public List<T> getUnselectedValues() {
 		return this.lmValues.getValues();
 	}
-	
+
 	public List<T> getPositiveValues() {
 		return this.lmPositive.getValues();
 	}

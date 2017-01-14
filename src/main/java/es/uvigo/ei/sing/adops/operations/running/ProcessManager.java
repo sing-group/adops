@@ -28,26 +28,26 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Logger;
 
 import es.uvigo.ei.sing.adops.operations.running.ProcessUtils.Printer;
 
-
 public abstract class ProcessManager {
 	protected Process activeProcess = null;
-	
-	private final LinkedHashMap<Object, Printer> printers;
-	
-	private AtomicBoolean isInterrupted = new AtomicBoolean(false);
+
+	private final Map<Object, Printer> printers;
+
+	private final AtomicBoolean isInterrupted = new AtomicBoolean(false);
 
 	public ProcessManager() {
 		super();
 
-		this.printers = new LinkedHashMap<Object, ProcessUtils.Printer>();
+		this.printers = new LinkedHashMap<>();
 	}
-	
+
 	protected Logger getLogger() {
 		return null;
 	}
@@ -60,7 +60,7 @@ public abstract class ProcessManager {
 			return true;
 		}
 	}
-	
+
 	public boolean addPrinter(PrintWriter ps) {
 		if (ps == null || this.printers.containsKey(ps)) {
 			return false;
@@ -69,11 +69,11 @@ public abstract class ProcessManager {
 			return true;
 		}
 	}
-	
+
 	public boolean removePrinter(PrintStream ps) {
 		return this.printers.remove(ps) != null;
 	}
-	
+
 	public boolean removePrinter(PrintWriter pw) {
 		return this.printers.remove(pw) != null;
 	}
@@ -92,11 +92,11 @@ public abstract class ProcessManager {
 			return printers;
 		}
 	}
-	
+
 	public boolean hasPrinter(PrintStream ps) {
 		return this.printers.containsKey(ps);
 	}
-	
+
 	public boolean hasPrinter(PrintWriter pw) {
 		return this.printers.containsKey(pw);
 	}
@@ -113,25 +113,26 @@ public abstract class ProcessManager {
 			ps.println(line);
 		}
 	}
-	
+
 	protected synchronized int runCommand(String command) throws OperationException,
-			InterruptedException {
+		InterruptedException {
 		return this.runCommand(command, this.getPrinters());
 	}
 
 	protected synchronized int runCommand(String command, String[] envp, File dir)
-			throws OperationException, InterruptedException {
+		throws OperationException, InterruptedException {
 		return this.runCommand(command, envp, dir, this.getPrinters());
 	}
 
 	protected synchronized int runCommand(String command, Printer... outs)
-			throws OperationException, InterruptedException {
+		throws OperationException, InterruptedException {
 		return this.runCommand(command, null, null, outs);
 	}
 
-	protected synchronized int runCommand(String command, String[] envp, File dir, Printer... outs) throws OperationException, InterruptedException {
+	protected synchronized int runCommand(String command, String[] envp, File dir, Printer... outs)
+	throws OperationException, InterruptedException {
 		this.activeProcess = null;
-		
+
 		if (this.getLogger() != null)
 			this.getLogger().info("Command: " + command);
 
@@ -142,10 +143,10 @@ public abstract class ProcessManager {
 					ProcessManager.this.activeProcess.destroy();
 			}
 		};
-		
+
 		try {
 			Runtime.getRuntime().addShutdownHook(hook);
-			
+
 			if (envp == null && dir == null) {
 				this.activeProcess = Runtime.getRuntime().exec(command);
 			} else {
@@ -153,12 +154,15 @@ public abstract class ProcessManager {
 			}
 
 			this.checkInterrupted();
-			
+
 			if (outs.length > 0) {
 				BufferedReader processIn = null;
 				try {
-					processIn = new BufferedReader(new InputStreamReader(
-							this.activeProcess.getInputStream()));
+					processIn = new BufferedReader(
+						new InputStreamReader(
+							this.activeProcess.getInputStream()
+						)
+					);
 
 					String line;
 					while ((line = processIn.readLine()) != null) {
@@ -178,19 +182,13 @@ public abstract class ProcessManager {
 
 			this.checkInterrupted();
 
-//			final int finalState = this.activeProcess.waitFor();
-			
-//			Runtime.getRuntime().removeShutdownHook(hook);
-			
 			return this.activeProcess.waitFor();
 		} catch (InterruptedException ie) {
 			this.destroyActiveProcess();
-//			Runtime.getRuntime().removeShutdownHook(hook);
 
 			throw ie;
 		} catch (IOException ioe) {
 			this.destroyActiveProcess();
-//			Runtime.getRuntime().removeShutdownHook(hook);
 
 			this.checkInterrupted();
 			throw new OperationException(command, ioe);
@@ -198,7 +196,7 @@ public abstract class ProcessManager {
 			Runtime.getRuntime().removeShutdownHook(hook);
 		}
 	}
-	
+
 	public void interrupt() {
 		synchronized (this.isInterrupted) {
 			this.isInterrupted.set(true);
@@ -213,7 +211,7 @@ public abstract class ProcessManager {
 			}
 		}
 	}
-	
+
 	protected void destroyActiveProcess() {
 		synchronized (this.isInterrupted) {
 			if (this.activeProcess != null) {

@@ -39,40 +39,38 @@ import es.uvigo.ei.sing.adops.datatypes.OperationOutput;
 
 public abstract class ProcessOperation<P extends ProcessManager, C extends SubConfiguration, V extends OperationOutput> implements Callable<V> {
 	private final List<PrintStream> outputStreams;
+	
 	private File inputFile;
 	private File outputFolder;
-	
-	private AtomicBoolean interrupted;
-	
-	protected Class<C> configurationClass;
-	protected C configuration;
-	
-	protected P process;
-	
-	protected ProcessOperation(Class<C> configurationClass) {
-		super();
 
+	private final AtomicBoolean interrupted;
+
+	protected final Class<C> configurationClass;
+	protected C configuration;
+
+	protected P process;
+
+	protected ProcessOperation(Class<C> configurationClass) {
 		this.interrupted = new AtomicBoolean(false);
-		
+
 		this.outputStreams = new LinkedList<PrintStream>();
-		
+
 		this.configuration = Configuration.getSystemConfiguration().getSubConfiguration(configurationClass);
 		this.configurationClass = configurationClass;
 	}
-	
-	
+
 	public void cancel() {
-		synchronized(this.interrupted) {
+		synchronized (this.interrupted) {
 			this.interrupted.set(true);
-			if (this.process != null) 
+			if (this.process != null)
 				this.process.interrupt();
 		}
 	}
-	
+
 	public void clear() {
 		this.interrupted.set(false);
 	}
-	
+
 	protected void checkInterrupted() throws InterruptedException {
 		synchronized (this.interrupted) {
 			if (this.interrupted.get()) {
@@ -80,7 +78,7 @@ public abstract class ProcessOperation<P extends ProcessManager, C extends SubCo
 			}
 		}
 	}
-	
+
 	public File getInputFile() {
 		return inputFile;
 	}
@@ -88,7 +86,7 @@ public abstract class ProcessOperation<P extends ProcessManager, C extends SubCo
 	public void setInputFile(File inputFile) {
 		this.inputFile = inputFile;
 	}
-	
+
 	public File getOutputFolder() {
 		return outputFolder;
 	}
@@ -100,7 +98,7 @@ public abstract class ProcessOperation<P extends ProcessManager, C extends SubCo
 	protected Logger getLogger() {
 		return null;
 	}
-	
+
 	protected void println(String line, Level level) {
 		if (this.getLogger() != null)
 			this.getLogger().log(level, line);
@@ -113,7 +111,7 @@ public abstract class ProcessOperation<P extends ProcessManager, C extends SubCo
 	protected void println(String line) {
 		this.println(line, Level.INFO);
 	}
-	
+
 	public boolean setPrintStream(PrintStream ps) {
 		this.clearPrintStreams();
 		return this.addPrintStream(ps);
@@ -126,7 +124,7 @@ public abstract class ProcessOperation<P extends ProcessManager, C extends SubCo
 			return this.outputStreams.add(ps);
 		}
 	}
-	
+
 	public List<PrintStream> getPrintStreams() {
 		return Collections.unmodifiableList(this.outputStreams);
 	}
@@ -142,26 +140,28 @@ public abstract class ProcessOperation<P extends ProcessManager, C extends SubCo
 	public void resetConfiguration() {
 		this.configuration = Configuration.getSystemConfiguration().getSubConfiguration(this.configurationClass);
 	}
-	
+
 	public void configure(Experiment experiment) {
 		this.configureExperiment(experiment);
-		
+
 		this.configure(experiment.getConfiguration());
 	}
-	
+
 	public void configure(Configuration configuration) {
 		this.configureConfiguration(configuration);
-		
+
 		this.configure(configuration.getSubConfiguration(this.configurationClass));
 	}
-	
+
 	public void configure(C subConfiguration) {
 		this.configuration = subConfiguration;
-		
+
 		this.configureSubConfiguration(this.configuration);
 	}
-	
+
 	protected void configureExperiment(Experiment experiment) {}
+
 	protected void configureConfiguration(Configuration configuration) {}
+
 	protected void configureSubConfiguration(C subConfiguration) {}
 }

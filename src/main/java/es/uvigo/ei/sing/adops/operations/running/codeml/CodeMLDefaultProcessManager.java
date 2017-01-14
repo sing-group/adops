@@ -55,107 +55,92 @@ public class CodeMLDefaultProcessManager extends CodeMLProcessManager {
 		DefaultFactory factory = new DefaultFactory();
 		Reader fastaReader = factory.getReader("linux", "clustal", "fasta", false, "logger");
 		Writer nexusWriter = factory.getWriter("linux", "paml", "nexus", false, false, true, false, "logger");
-		
-		
+
 		String fastaString;
 		try {
 			fastaString = FileUtils.readFileToString(fastaFile);
 		} catch (IOException e) {
-			throw new OperationException (null,"Error reading input fasta file",e);
+			throw new OperationException(null, "Error reading input fasta file", e);
 		}
 		try {
 			FileUtils.writeStringToFile(nexusFile, nexusWriter.write(fastaReader.read(fastaString)));
 		} catch (IOException e) {
-			throw new OperationException (null, "Error creating nexus file",e);
+			throw new OperationException(null, "Error creating nexus file", e);
 		} catch (ParseException e) {
-			throw new OperationException (null, "Error parsing fasta file", e);
+			throw new OperationException(null, "Error parsing fasta file", e);
 		}
 	}
-	
+
 	@Override
 	public void createTreeFile(File treeFile, File consFile) throws OperationException {
-        BufferedReader br = null;
-        try {
-	        br = new BufferedReader(new FileReader(consFile));
-	        
-	        String line = null;
-	        while ((line = br.readLine()) != null && !line.contains("con_50_majrule"));
-	        while ((line = br.readLine()) != null && !line.contains("con_50_majrule"));
-	        
-	        line = line.substring(line.indexOf('('));
-	        line = line.replaceAll(":[01]\\.[0-9]+", "");
-	        final int seqCount = line.split(",").length;
-	        
-	        FileUtils.writeLines(treeFile, Arrays.asList(seqCount + " 1\n", line));
-        } catch (IOException e) {
-        	throw new OperationException (null, "Error creating final tree file", e);
-        } finally {
-        	if (br != null)
-        		try { br.close(); }
-        		catch (IOException ioe) {}        	
-        }
+		try (BufferedReader br = new BufferedReader(new FileReader(consFile))) {
+			String line = null;
+			
+			while ((line = br.readLine()) != null && !line.contains("con_50_majrule"));
+			while ((line = br.readLine()) != null && !line.contains("con_50_majrule"));
+
+			line = line.substring(line.indexOf('('));
+			line = line.replaceAll(":[01]\\.[0-9]+", "");
+			
+			final int seqCount = line.split(",").length;
+
+			FileUtils.writeLines(treeFile, Arrays.asList(seqCount + " 1\n", line));
+		} catch (IOException e) {
+			throw new OperationException(null, "Error creating final tree file", e);
+		}
 	}
-	
+
 	@Override
-	public void createCodeMLFile(File nexusFile, File treeFile, File ctlFile,
-			File outputFile) throws OperationException {
+	public void createCodeMLFile(
+		File nexusFile, File treeFile, File ctlFile,
+		File outputFile
+	) throws OperationException {
 		try {
 			FileUtils.writeStringToFile(ctlFile, this.createCodeMLCtl(nexusFile, treeFile, outputFile));
 		} catch (IOException e) {
-			throw new OperationException (null, "Error creating ctl file", e);
-		}		
+			throw new OperationException(null, "Error creating ctl file", e);
+		}
 	}
-	
+
 	@Override
 	public int executeCodeMLFile(File ctlFile, File logFile) throws OperationException {
 		try {
 			return this.runCodeML(ctlFile.getAbsolutePath(), logFile, true);
 		} catch (InterruptedException e) {
-			throw new OperationException (null, "CodeML operation interrupted", e);
+			throw new OperationException(null, "CodeML operation interrupted", e);
 		}
 	}
-	
+
 	@Override
 	public void buildSummary(File outFile, File summaryFile) throws OperationException {
-		//final String models[] = new String[6];
-		//final double logLikelihood[] = new double[6];
-		Map<String,Double> logLikelihood = new HashMap<String,Double>();
-		Map<String,String> modelNames = new HashMap<String,String>();
+		final Map<String, Double> logLikelihood = new HashMap<>();
+		final Map<String, String> modelNames = new HashMap<>();
 		String model2Data = "", model8Data = "";
-//		int i = 0;
 		String currentModel = null;
 
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader(outFile));
-	
-			String line = null;
+		try (BufferedReader br = new BufferedReader(new FileReader(outFile))) {
+			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.startsWith("Model")) {
 					int end = line.indexOf(" (");
 					if (end == -1)
 						end = line.length();
-//					models[i] = line.substring(0, end);
-					currentModel = line.substring(0,line.indexOf(':'));
+
+					currentModel = line.substring(0, line.indexOf(':'));
 					modelNames.put(currentModel, line.substring(0, end));
-				}
-				else if (line.startsWith("lnL")) {
+				} else if (line.startsWith("lnL")) {
 					int index = line.indexOf('-');
-					//logLikelihood[i++] = Double.parseDouble(line.substring(index,line.indexOf(' ',index)));
-					logLikelihood.put(currentModel,Double.parseDouble(line.substring(index,line.indexOf(' ',index))));
-				}
-				else if (line.startsWith("Naive") || line.startsWith("Bayes")) {
+					logLikelihood.put(currentModel, Double.parseDouble(line.substring(index, line.indexOf(' ', index))));
+				} else if (line.startsWith("Naive") || line.startsWith("Bayes")) {
 					String modelData = line + "\n";
 					int whiteLines = 0;
-						while ((line = br.readLine()) != null && whiteLines < 3 && !line.startsWith("Time used")) {
-							if (line.isEmpty())
-								++whiteLines;
-							modelData += line + "\n";
-						}
-//					if (models[i - 1].startsWith("Model 2"))
-//						model2Data += modelData;
-//					else if (models[i - 1].startsWith("Model 8"))
-//						model8Data += modelData;
+					
+					while ((line = br.readLine()) != null && whiteLines < 3 && !line.startsWith("Time used")) {
+						if (line.isEmpty())
+							++whiteLines;
+						modelData += line + "\n";
+					}
+
 					if (currentModel.startsWith("Model 2"))
 						model2Data += modelData;
 					else if (currentModel.startsWith("Model 8"))
@@ -163,65 +148,46 @@ public class CodeMLDefaultProcessManager extends CodeMLProcessManager {
 				}
 			}
 		} catch (IOException e) {
-			throw new OperationException (null, "Error reading CodeML output file", e);
-		} finally {
-	       	if (br != null)
-        		try { br.close(); }
-        		catch (IOException ioe) {}        				
+			throw new OperationException(null, "Error reading CodeML output file", e);
 		}
 
-		FileWriter sumFW = null;
-		try {
-			sumFW = new FileWriter(summaryFile);
-//			for(int a=0;a<i;++a) {
-//				sumFW.append(models[a] + "\t" + logLikelihood[a] + "\n");
-//			}
-			for(String model : logLikelihood.keySet()) {
+		try (FileWriter sumFW = new FileWriter(summaryFile)) {
+			for (String model : logLikelihood.keySet()) {
 				sumFW.append(modelNames.get(model) + "\t" + logLikelihood.get(model) + "\n");
 			}
-	
-//			double diff01 = Math.abs(logLikelihood[1] - logLikelihood[0]) * 2;
-//			double diff21 = Math.abs(logLikelihood[2] - logLikelihood[1]) * 2;
-//			double diff87 = Math.abs(logLikelihood[5] - logLikelihood[4]) * 2;
-	
+
 			sumFW.append("\n");
-			
+
 			if (logLikelihood.containsKey("Model 0") && logLikelihood.containsKey("Model 1")) {
-				double diff01 = Math.abs(logLikelihood.get("Model 1") - logLikelihood.get("Model 0")) * 2;
-				sumFW.append("\nModel 0 vs 1\t" + diff01 + "\n");
-//				if (diff01 > 3.8414) {
-//					sumFW.append ("\nAdditional information for M0 vs M1:\n");
-//				}
-			}
+				final double diff01 = Math.abs(logLikelihood.get("Model 1") - logLikelihood.get("Model 0")) * 2;
 				
+				sumFW.append("\nModel 0 vs 1\t" + diff01 + "\n");
+			}
+
 			if (logLikelihood.containsKey("Model 2") && logLikelihood.containsKey("Model 1")) {
-				double diff21 = Math.abs(logLikelihood.get("Model 2") - logLikelihood.get("Model 1")) * 2;
+				final double diff21 = Math.abs(logLikelihood.get("Model 2") - logLikelihood.get("Model 1")) * 2;
+				
 				sumFW.append("\nModel 2 vs 1\t" + diff21 + "\n");
 				if (diff21 > 5.9914 && !model2Data.isEmpty()) {
-					sumFW.append ("\nAdditional information for M1 vs M2:\n");
-					sumFW.append (model2Data);
+					sumFW.append("\nAdditional information for M1 vs M2:\n");
+					sumFW.append(model2Data);
 				}
 			}
-		
+
 			if (logLikelihood.containsKey("Model 8") && logLikelihood.containsKey("Model 7")) {
-				double diff87 = Math.abs(logLikelihood.get("Model 8") - logLikelihood.get("Model 7")) * 2;
+				final double diff87 = Math.abs(logLikelihood.get("Model 8") - logLikelihood.get("Model 7")) * 2;
+				
 				sumFW.append("\nModel 8 vs 7\t" + diff87 + "\n");
 				if (diff87 > 5.9914 && !model8Data.isEmpty()) {
-					sumFW.append ("\nAdditional information for M7 vs M8:\n");
-					sumFW.append (model8Data);
+					sumFW.append("\nAdditional information for M7 vs M8:\n");
+					sumFW.append(model8Data);
 				}
 			}
-	
 		} catch (IOException e) {
-			throw new OperationException (null, "Error creating CodeML summary file", e);
-		} finally {
-	       	if (sumFW != null)
-        		try { sumFW.close(); }
-        		catch (IOException ioe) {}
+			throw new OperationException(null, "Error creating CodeML summary file", e);
 		}
-
 	}
-	
+
 	@Override
 	public void moveOutputFiles(CodeMLOutput output) throws OperationException {
 		try {
@@ -233,7 +199,7 @@ public class CodeMLDefaultProcessManager extends CodeMLProcessManager {
 			FileUtils.moveFile(new File("rst"), output.getRstFile());
 			FileUtils.moveFile(new File("rst1"), output.getRst1File());
 		} catch (IOException e) {
-			throw new OperationException (null, "Error moving CodeML output files", e);
+			throw new OperationException(null, "Error moving CodeML output files", e);
 		}
 	}
 
@@ -242,37 +208,37 @@ public class CodeMLDefaultProcessManager extends CodeMLProcessManager {
 		return new StringBuilder()
 			.append("seqfile = ").append(nexusFile.getAbsolutePath()).append("   * sequence data file name\n")
 			.append("treefile = ").append(treeFile.getAbsolutePath()).append("   * tree structure file name\n")
-	
+
 			.append("outfile = ").append(outputFile.getAbsolutePath()).append("      * main result file name\n")
 			.append("noisy = 3   * 0,1,2,3,9: how much rubbish on the screen\n")
 			.append("verbose = 0   * 1: detailed output, 0: concise output\n")
 			.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic\n")
 			.append("              * 3: StepwiseAddition; (4,5):PerturbationNNI; -2: pairwise\n\n")
-	
+
 			.append("seqtype = 1   * 1:codons; 2:AAs; 3:codons-->AAs\n")
 			.append("CodonFreq = 2   * 0:1/61 each, 1:F1X4, 2:F3X4, 3:codon table\n")
 			.append("clock = 0   * 0: no clock, unrooted tree, 1: clock, rooted tree\n")
 			.append("aaDist = 0   * 0:equal, +:geometric; -:linear, {1-5:G1974,Miyata,c,p,v}\n")
 			.append("model = 0\n\n")
-	
+
 			.append("NSsites = ").append(this.configuration.getModels()).append("\n")
 			.append("             * 0:one w; 1:NearlyNeutral; 2:PositiveSelection; 3:discrete;\n")
 			.append("             * 4:freqs; 5:gamma;6:2gamma;7:beta;8:beta&w;9:beta&gamma;10:3normal\n")
 			.append("icode = 0   * 0:standard genetic code; 1:mammalian mt; 2-10:see below\n")
 			.append("Mgene = 0   * 0:rates, 1:separate; 2:pi, 3:kappa, 4:all\n\n")
-	
+
 			.append("fix_kappa = 0   * 1: kappa fixed, 0: kappa to be estimated\n")
 			.append("kappa = .3   * initial or fixed kappa\n")
-			.append("fix_omega = 0   * 1: omega or omega_1 fixed, 0: estimate\n") 
+			.append("fix_omega = 0   * 1: omega or omega_1 fixed, 0: estimate\n")
 			.append("omega = 1.3  * initial or fixed omega, for codons or codon-based AAs\n")
 			.append("ncatG = 10   * # of categories in the dG or AdG models of rates\n\n")
-	
+
 			.append("getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n")
 			.append("RateAncestor = 0   * (0,1,2): rates (alpha>0) or ancestral states (1 or 2)\n\n")
-	
+
 			.append("Small_Diff = .45e-6\n")
 			.append("cleandata = 1  * remove sites with ambiguity data (1:yes, 0:no)?\n")
 			.append("fix_blength = 0  * 0: ignore, -1: random, 1: initial, 2: fixed\n")
-		.toString();
+			.toString();
 	}
 }

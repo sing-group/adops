@@ -23,7 +23,6 @@ package es.uvigo.ei.sing.adops.operations.running;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -35,6 +34,7 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import es.uvigo.ei.aibench.core.operation.annotation.Cancel;
 import es.uvigo.ei.aibench.core.operation.annotation.Direction;
@@ -55,23 +55,25 @@ import es.uvigo.ei.sing.adops.operations.running.tcoffee.TCoffeeOperation;
 
 @Operation(name = "Run Experiment")
 public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput> {
+	private final static Logger LOG = Logger.getLogger(ExecuteExperimentBySteps.class);
+	
 	private Experiment experiment;
 	private ExperimentOutput experimentOutput;
-	
+
 	private TCoffeeOperation tCoffeeOperation;
 	private MrBayesOperation mrBayesOperation;
 	private CodeMLOperation codeMLOperation;
-	
+
 	private PrintStream logPS;
 	private File logFile;
-	
+
 	private StatusProgress progress = new StatusProgress();
-	
+
 	@Progress
 	public StatusProgress getProgress() {
 		return progress;
 	}
-	
+
 	public static class StatusProgress {
 		private String status = "";
 
@@ -83,64 +85,47 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			this.status = status;
 		}
 	}
-	
-	@Port(
-		name = "Experiment",
-		direction = Direction.INPUT,
-		order = 1
-	)
+
+	@Port(name = "Experiment", direction = Direction.INPUT, order = 1)
 	public void setExperiment(Experiment experiment) {
 		this.experiment = experiment;
-		
+
 		this.setOutputFolder(experiment.getFolder());
 	}
-	
-	@Port(
-		name = "Use Std. Output",
-		order = 2,
-		direction = Direction.INPUT,
-		defaultValue = "true"
-	)
+
+	@Port(name = "Use Std. Output", order = 2, direction = Direction.INPUT, defaultValue = "true")
 	public void setUseStdOutput(boolean useStdOutput) {
 		if (useStdOutput)
 			this.addPrintStream(System.out);
 		else
 			this.removePrintStream(System.out);
 	}
-	
-	@Port(
-		name = "Print Stream",
-		direction = Direction.INPUT,
-		order = 3,
-		allowNull = true
-	)
+
+	@Port(name = "Print Stream", direction = Direction.INPUT, order = 3, allowNull = true)
 	public void setOutputStream(PrintStream out) {
 		this.addPrintStream(out);
 	}
-	
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 1000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 1000)
 	public ExperimentOutput createExperimentOutput() throws OperationException {
 		try {
 			this.progress.setStatus("Starting");
-			
+
 			this.experiment.setRunning(true);
-	
+
 			this.checkInterrupted();
-			
+
 			this.progress.setStatus("Creating output.log file");
 			this.logFile = this.newOutputFile("output.log");
 			this.addPrintStream(new PrintStream(logFile));
-	
+
 			this.checkInterrupted();
-			
+
 			this.progress.setStatus("Generating input files");
 			this.experiment.generateInputFiles();
-			
+
 			this.checkInterrupted();
-			
+
 			return this.experimentOutput = new ExperimentOutput(this.experiment);
 		} catch (IOException ioe) {
 			this.clearWhenException();
@@ -152,44 +137,43 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			throw new OperationException("", "Unexpected error initializing execution", e);
 		}
 	}
-	
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 2000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 2000)
 	public TCoffeeOutput runTCoffee() throws OperationException {
 		try {
 			this.progress.setStatus("Running T-Coffee");
-			
+
 			this.checkInterrupted();
-			
+
 			this.tCoffeeOperation = new TCoffeeOperation();
 			this.tCoffeeOperation.configure(this.experiment);
 			this.configureOutputStreams(this.tCoffeeOperation);
-	
+
 			this.checkInterrupted();
-			
+
 			final TCoffeeOutput output = this.tCoffeeOperation.call();
-			
+
 			this.checkInterrupted();
-			
+
 			this.replaceSequenceNames(output.getAlignmentFile(), this.experimentOutput.getRenamedAlignedFastaFile());
 			this.replaceSequenceNames(output.getProteinAlignmentFile(), this.experimentOutput.getRenamedAlignedProteinFastaFile());
 			this.replaceSequenceNames(output.getFinalScoreFile(), this.experimentOutput.getRenamedScoreAsciiFile());
 			this.replaceSequenceNamesAln(output.getFinalUsedAlnFile(), this.experimentOutput.getRenamedAlignedProteinAlnFile());
 			this.replaceOGaps(this.experimentOutput.getRenamedAlignedFastaFile());
 			this.replaceOGaps(this.experimentOutput.getRenamedAlignedProteinFastaFile());
-			this.replaceOGaps(this.experimentOutput.getRenamedScoreAsciiFile(), new Utils.LinesFilter() {
-				@Override
-				public boolean accept(int index, String line) {
-					return line.matches("^C[0-9]+.*");
+			this.replaceOGaps(
+				this.experimentOutput.getRenamedScoreAsciiFile(), new Utils.LinesFilter() {
+					@Override
+					public boolean accept(int index, String line) {
+						return line.matches("^C[0-9]+.*");
+					}
 				}
-			});
-			
+			);
+
 			this.checkInterrupted();
-			
+
 			this.experimentOutput.setTCoffeeOutput(output);
-			
+
 			return output;
 		} catch (IOException ioe) {
 			this.clearWhenException();
@@ -201,35 +185,32 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			throw new OperationException("", "Unexpected error running T-Coffee", e);
 		}
 	}
-	
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 3000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 3000)
 	public OperationOutput runMrBayes() throws OperationException {
 		try {
 			this.progress.setStatus("Running MrBayes");
-			
+
 			this.checkInterrupted();
-			
+
 			// MrBayes Configuration
 			this.mrBayesOperation = new MrBayesOperation();
 			this.mrBayesOperation.configure(this.experiment);
 			this.configureOutputStreams(this.mrBayesOperation);
-	
+
 			this.checkInterrupted();
-			
+
 			final MrBayesOutput output = this.mrBayesOperation.call();
-	
+
 			this.checkInterrupted();
-			
+
 			this.replaceSequenceNames(output.getConFile(), this.experimentOutput.getRenamedTreeFile(), true);
 			this.replaceSequenceNames(output.getPsrfFile(), this.experimentOutput.getPsrfFile());
-			
+
 			this.checkInterrupted();
-			
+
 			this.experimentOutput.setMrBayesOutput(output);
-			
+
 			return output;
 		} catch (OperationException oe) {
 			this.clearWhenException();
@@ -244,36 +225,33 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			throw new OperationException("", "Unexpected error running MrBayes", e);
 		}
 	}
-		
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 4000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 4000)
 	public CodeMLOutput runCodeML() throws OperationException {
 		try {
 			this.progress.setStatus("Running CodeML");
-			
+
 			this.checkInterrupted();
-			
+
 			this.codeMLOperation = new CodeMLOperation();
 			this.codeMLOperation.configure(this.experiment);
-			
+
 			this.codeMLOperation.setConsFile(this.experimentOutput.getMrBayesOutput().getConFile());
 			this.configureOutputStreams(this.codeMLOperation);
-	
+
 			this.checkInterrupted();
-			
+
 			final CodeMLOutput output = this.codeMLOperation.call();
-	
+
 			this.checkInterrupted();
-			
+
 			this.replaceSequenceNames(output.getOutputFile(), this.experimentOutput.getCodeMLOutputFile());
 			this.replaceSequenceNames(output.getSummaryFile(), this.experimentOutput.getCodeMLSummaryFile());
-			
+
 			this.checkInterrupted();
-			
+
 			this.experimentOutput.setCodeMLOutput(output);
-			
+
 			return output;
 		} catch (IOException ioe) {
 			this.clearWhenException();
@@ -285,175 +263,164 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			throw new OperationException("", "Unexpected error running CodeML", e);
 		}
 	}
-	
-	@Port(
-		direction = Direction.OUTPUT,
-		order = 5000
-	)
+
+	@Port(direction = Direction.OUTPUT, order = 5000)
 	public ExperimentOutput getResult() throws OperationException {
 		try {
 			this.progress.setStatus("Generating summary file");
-			
+
 			this.checkInterrupted();
 
-	    	FileUtils.writeLines(this.experimentOutput.getSummaryFile(), Arrays.asList(
-	    		"--- EXPERIMENT NOTES",
-	    		FileUtils.readFileToString(this.experiment.getNotesFile()),
-	    		"\n--- WARNINGS",
-	    		this.experiment.getWarnings(),
-	    		"\n--- EXPERIMENT PROPERTIES",
-	    		this.experiment.getConfiguration().toString(),
-				"\n--- PSRF SUMMARY",
-				FileUtils.readFileToString(this.experimentOutput.getPsrfFile()),
-				"\n--- CODEML SUMMARY",
-				FileUtils.readFileToString(this.experimentOutput.getCodeMLSummaryFile())
-			));
-	
+			FileUtils.writeLines(
+				this.experimentOutput.getSummaryFile(), Arrays.asList(
+					"--- EXPERIMENT NOTES",
+					FileUtils.readFileToString(this.experiment.getNotesFile()),
+					"\n--- WARNINGS",
+					this.experiment.getWarnings(),
+					"\n--- EXPERIMENT PROPERTIES",
+					this.experiment.getConfiguration().toString(),
+					"\n--- PSRF SUMMARY",
+					FileUtils.readFileToString(this.experimentOutput.getPsrfFile()),
+					"\n--- CODEML SUMMARY",
+					FileUtils.readFileToString(this.experimentOutput.getCodeMLSummaryFile())
+				)
+			);
+
 			if (this.logPS != null)
 				this.logPS.close();
-			
+
 			this.experimentOutput.setFinished(true);
 			this.experiment.setRunning(false);
-	
+
 			return this.experimentOutput;
 		} catch (IOException ioe) {
 			this.clearWhenException();
 			throw new OperationException("", "Error generating result", ioe);
 		} catch (InterruptedException ie) {
 			this.clearWhenInterrupted();
-			
+
 			return null;
 		} catch (Exception e) {
 			this.clearWhenException();
 			throw new OperationException("", "Unexpected error summarizing results", e);
 		}
 	}
-	
+
 	@Override
 	protected ExperimentOutput internalCall() throws OperationException {
 		this.createExperimentOutput();
 		this.runTCoffee();
 		this.runMrBayes();
 		this.runCodeML();
-		
+
 		return this.getResult();
 	}
-	
+
 	private void replaceOGaps(File inputFile) throws IOException {
-		this.replaceOGaps(inputFile, new Utils.LinesFilter() {
-			@Override
-			public boolean accept(int index, String line) {
-				return !line.startsWith(">");
+		this.replaceOGaps(
+			inputFile, new Utils.LinesFilter() {
+				@Override
+				public boolean accept(int index, String line) {
+					return !line.startsWith(">");
+				}
 			}
-		});
+		);
 	}
-	
+
 	private void replaceOGaps(File inputFile, LinesFilter filter) throws IOException {
 		FileUtils.writeLines(
-			inputFile, 
+			inputFile,
 			Utils.replaceNames(
-				Collections.singletonMap("o", "-"), 
+				Collections.singletonMap("o", "-"),
 				FileUtils.readLines(inputFile),
 				filter
 			)
 		);
 	}
-	
+
 	private void replaceSequenceNames(File inputFile, File outputFile) throws IOException {
 		this.replaceSequenceNames(inputFile, outputFile, false);
 	}
-	
-	private void replaceSequenceNames(File inputFile, File outputFile, boolean isTree/*, boolean isFasta*/) throws IOException {
-		Map<String,String> names = this.experiment.getNames();
-		
+
+	private void replaceSequenceNames(File inputFile, File outputFile, boolean isTree) throws IOException {
+		final Map<String, String> names = this.experiment.getNames();
+
 		if (isTree) {
 			for (Map.Entry<String, String> name : names.entrySet()) {
 				name.setValue(name.getValue().replaceAll("[():,]", "_"));
 			}
 		}
-		
-		List<String> lines = FileUtils.readLines(inputFile);
 
-//		if (isFasta) {
-//			FileUtils.writeLines(outputFile, Utils.replaceNames(names, lines, new LinesFilter() {
-//				@Override
-//				public boolean accept(String line) {
-//					return line.startsWith(">");
-//				}
-//			}));
-//		} else {
-		FileUtils.writeLines(outputFile, Utils.replaceNames(names, lines));
-//		}
-	}
-	
-	private void replaceSequenceNamesAln(File inputFile, File outputFile) throws IOException {
-		final Map<String,String> names = this.experiment.getNames();
 		final List<String> lines = FileUtils.readLines(inputFile);
-		
+
+		FileUtils.writeLines(outputFile, Utils.replaceNames(names, lines));
+	}
+
+	private void replaceSequenceNamesAln(File inputFile, File outputFile) throws IOException {
+		final Map<String, String> names = this.experiment.getNames();
+		final List<String> lines = FileUtils.readLines(inputFile);
+
 		int maxLength = Integer.MIN_VALUE;
 		for (Map.Entry<String, String> name : names.entrySet()) {
 			maxLength = Math.max(maxLength, name.getValue().length());
 		}
-		
+
 		for (Map.Entry<String, String> name : names.entrySet()) {
 			String newName = name.getValue();
-			
+
 			while (newName.length() < maxLength) {
 				newName += ' ';
 			}
-			
+
 			name.setValue(newName);
 		}
-		
+
 		final ListIterator<String> itLines = lines.listIterator();
-		if (itLines.hasNext()) itLines.next();
-		
+		if (itLines.hasNext())
+			itLines.next();
+
 		// TODO Review parsing
 		while (itLines.hasNext()) {
 			itLines.next(); // White line
-			
+
 			String line = null;
 			// Sequences
-			//for (int i = 0; i < names.size() && itLines.hasNext(); i++) {
 			while (itLines.hasNext()) {
-				//final String line = itLines.next();
 				line = itLines.next();
-				if (line.isEmpty()) break;
+				if (line.isEmpty())
+					break;
 				final String[] lineSplit = line.split("\\s+");
 				final String name = lineSplit.length == 0 ? "" : lineSplit[0];
-				
-				if (names.get(name) == null) break;
-				
+
+				if (names.get(name) == null)
+					break;
+
 				itLines.set(names.get(name) + "   " + lineSplit[1]);
 			}
-			
+
 			// Marks line
-			//if (itLines.hasNext()) {
 			if (line != null && !line.isEmpty() && line.startsWith(" ")) {
-				//final String line = itLines.next();
-				//if (line.isEmpty()) break;
-				
 				String newLine = line;
-				
+
 				if (maxLength < 13)
 					newLine = newLine.substring(13 - maxLength);
 				else
 					for (int i = 16; i < maxLength + 3; i++) {
 						newLine = ' ' + newLine;
 					}
-				
+
 				itLines.set(newLine);
 			}
 		}
-		
+
 		FileUtils.writeLines(outputFile, lines);
 	}
-	
+
 	@Override
 	@Cancel
 	public void cancel() {
 		super.cancel();
-		
+
 		if (this.tCoffeeOperation != null)
 			this.tCoffeeOperation.cancel();
 		if (this.mrBayesOperation != null)
@@ -461,7 +428,7 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 		if (this.codeMLOperation != null)
 			this.codeMLOperation.cancel();
 	}
-	
+
 	@Override
 	public void clear() {
 		this.experiment.setRunning(false);
@@ -469,76 +436,70 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			this.removePrintStream(this.logPS);
 			this.logPS.close();
 		}
-		
+
 		if (this.tCoffeeOperation != null)
 			this.tCoffeeOperation.clear();
 		if (this.mrBayesOperation != null)
 			this.mrBayesOperation.clear();
 		if (this.codeMLOperation != null)
 			this.codeMLOperation.clear();
-		
+
 		super.clear();
 	}
-	
+
 	@Override
 	protected void clearWhenException() {
 		if (this.logPS != null) {
 			this.removePrintStream(this.logPS);
 			this.logPS.close();
 		}
-		
+
 		this.experiment.setRunning(false);
 	}
 
 	@Override
 	protected void clearWhenInterrupted() {
 		super.clearWhenInterrupted();
-		
+
 		if (this.logPS != null) {
 			this.removePrintStream(this.logPS);
 			this.logPS.close();
 		}
-		
+
 		this.experiment.setRunning(false);
 	}
 
 	private void configureOutputStreams(ProcessOperation<?, ?, ?> operation) {
 		operation.clearPrintStreams();
-		
+
 		for (PrintStream ps : this.getPrintStreams()) {
 			operation.addPrintStream(ps);
 		}
 	}
-	
-    public final File generateTreeFile(File conFile, File namesFile, File treeFile) {
-    	// Read names file
-        Map<String,String> names = this.experiment.getNames();
-    	
-    	// Create new tree file
-//    	File treeFile = new File(experiment.getFolder(), conFile.getName());
-		try {
-	        BufferedReader br = new BufferedReader(new FileReader(conFile));
-			FileWriter treeFW = new FileWriter(treeFile);
-	        
-	        String line = null;
-	        while ((line=br.readLine())!=null) {
-	        	if (line.indexOf("con_50_majrule")!=-1)
-	        		for (String s : names.keySet())
-	        			line = line.replaceAll(s, names.get(s));
 
-	        	treeFW.append(line+"\n");
-	        }
-	        
-	        br.close();
-			treeFW.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public final File generateTreeFile(File conFile, File namesFile, File treeFile) {
+		// Read names file
+		final Map<String, String> names = this.experiment.getNames();
+
+		// Create new tree file
+		try (BufferedReader br = new BufferedReader(new FileReader(conFile));
+			FileWriter treeFW = new FileWriter(treeFile);
+		) {
+
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				if (line.indexOf("con_50_majrule") != -1)
+					for (String s : names.keySet())
+						line = line.replaceAll(s, names.get(s));
+
+				treeFW.append(line + "\n");
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error("Error generating tree file", e);
+			
+			throw new RuntimeException("Error generating tree file", e);
 		}
-		
+
 		return treeFile;
-    }
+	}
 }

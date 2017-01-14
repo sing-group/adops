@@ -24,7 +24,7 @@ package es.uvigo.ei.sing.adops.configuration;
 public interface ExecutableConfiguration {
 	public static final String PROPERTY_BINARY = "bin";
 	public static final String PROPERTY_DIRECTORY = "dir";
-	
+
 	public abstract String getDirectory();
 
 	public abstract void setDirectory(String directory);

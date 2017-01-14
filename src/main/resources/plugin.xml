@@ -22,7 +22,7 @@
 <plugin start="true">
 	<uid>es.uvigo.ei.sing.adops</uid>
 	<name>ADOPS</name>
-	<version>0.5.0</version>
+	<version>${project.version}</version>
 	
 	<!-- lifecycle class. Used to detect when the plugin is started. The class should inherit from org.platonos.pluginengine.PluginLifecycle-->
 	<lifecycleclass>es.uvigo.ei.sing.adops.ADOPSLifecycle</lifecycleclass>
