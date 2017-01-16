@@ -315,7 +315,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 
 			String score = "";
 			for (String line : lines) {
-				if (line.matches("c[o-]\\s+([0-9]|-)+")) {
+				if (line.matches("c[o-]n?\\s+([0-9]|-)+")) {
 					score += line.split("\\s+")[1];
 				}
 			}

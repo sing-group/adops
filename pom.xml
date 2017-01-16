@@ -26,7 +26,7 @@
 	<groupId>org.sing-group</groupId>
 	<artifactId>adops</artifactId>
 	<packaging>jar</packaging>
-	<version>0.5.1</version>
+	<version>0.5.2</version>
 	
 	<name>ADOPS</name>
 	<description>Automatic Detection Of Positively Selected sites</description>
