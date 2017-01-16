@@ -110,12 +110,12 @@
 		<repository>
 			<id>sing-maven-releases</id>
 			<name>SING Maven Releases</name>
-			<url>http://maven.sing-group.org/repository/maven-releases/</url>
+			<url>https://maven.sing-group.org/repository/maven-releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>sing-maven-releases</id>
 			<name>SING Maven Snapshots</name>
-			<url>http://maven.sing-group.org/repository/maven-snapshots/</url>
+			<url>https://maven.sing-group.org/repository/maven-snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 
@@ -123,7 +123,7 @@
 		<repository>
 			<id>sing-repository</id>
 			<name>SING repository</name>
-			<url>http://maven.sing-group.org/repository/maven-public/</url>
+			<url>https://maven.sing-group.org/repository/maven-public/</url>
 		</repository>
 		<repository>
 			<id>say.swing.footchooser</id>
