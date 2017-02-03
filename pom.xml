@@ -138,20 +138,32 @@
 
 	<properties>
 		<!-- General -->
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		
+		<!-- Dependencies -->
+		<yacli.version>1.0</yacli.version>
+		<alter-lib.version>1.3.4-SNAPSHOT</alter-lib.version>
+		<commons-io.version>2.0.1</commons-io.version>
+		<jai_imageio.version>1.1.1</jai_imageio.version>
+		<jfontchooser.version>1.0.5</jfontchooser.version>
+		<swingx-all.version>1.6.5-1</swingx-all.version>
+		<custom-forester.version>1.0.0</custom-forester.version>
 		
 		<!-- Plugins -->
 		<license-maven-plugin.version>1.10</license-maven-plugin.version>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
 		<maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
+		<maven-resources-plugin.version>2.7</maven-resources-plugin.version>
+		<maven-dependency-plugin.version>2.1</maven-dependency-plugin.version>
 		
 		<!-- AIBench configuration -->
 		<aibench.lib.artifactIds>javatar,aibench-aibench,jhall,log4j</aibench.lib.artifactIds>
 		<aibench.plugins.artifactIds>aibench-core,aibench-workbench</aibench.plugins.artifactIds>
-		<aibench.version>2.7.3</aibench.version>
+		<globalResourcesDirectory>src/main/global-resources</globalResourcesDirectory>
+		<aibench.version>2.8.0</aibench.version>
 		
 		<!-- license-maven-plugin configuration -->
 		<license.licenseName>gpl_v3</license.licenseName>
@@ -176,37 +188,37 @@
 		<dependency>
 			<groupId>es.uvigo.ei.sing</groupId>
 			<artifactId>yacli</artifactId>
-			<version>1.0</version>
+			<version>${yacli.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>es.uvigo.ei.sing</groupId>
 			<artifactId>alter-lib</artifactId>
-			<version>1.3.4-SNAPSHOT</version>
+			<version>${alter-lib.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.0.1</version>
+			<version>${commons-io.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.media</groupId>
 			<artifactId>jai_imageio</artifactId>
-			<version>1.1.1</version>
+			<version>${jai_imageio.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>say.swing</groupId>
 			<artifactId>jfontchooser</artifactId>
-			<version>1.0.5</version>
+			<version>${jfontchooser.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.swinglabs.swingx</groupId>
 		    <artifactId>swingx-all</artifactId>
-		    <version>1.6.5-1</version>
+		    <version>${swingx-all.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sing_group</groupId>
 			<artifactId>custom-forester</artifactId>
-			<version>1.0.0</version>
+			<version>${custom-forester.version}</version>
 		</dependency>
 
 		<!-- AIBench plugins dependencies -->
@@ -240,56 +252,38 @@
 
 	<build>
 		<directory>${project.basedir}/target</directory>
-		<outputDirectory>${project.build.directory}/plugins_bin/${project.artifactId}</outputDirectory>
+		<outputDirectory>${project.build.directory}/dist/plugins_bin/${project.artifactId}</outputDirectory>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.7</version>
+				<version>${maven-resources-plugin.version}</version>
 				<executions>
-					<!-- copy conf -->
+					<!-- copy resources -->
 					<execution>
-						<id>copy-resources-conf</id>
+						<id>copy-global-resources</id>
 						<!-- here the phase you need -->
 						<phase>validate</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/conf</outputDirectory>
+							<outputDirectory>${project.build.directory}/dist</outputDirectory>
 							<resources>
 								<resource>
-									<directory>src/main/resources/conf</directory>
+									<directory>${globalResourcesDirectory}</directory>
 									<filtering>true</filtering>
 								</resource>
 							</resources>
 						</configuration>
 					</execution>
-					<!-- copy scripts -->
-					<execution>
-						<id>copy-resources-scripts</id>
-						<!-- here the phase you need -->
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>src/main/resources/scripts</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-
 				</executions>
 			</plugin>
-
+		
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.1</version>
+				<version>${maven-dependency-plugin.version}</version>
 				<executions>
 					<!-- aibench core libraries -->
 					<execution>
@@ -299,7 +293,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<outputDirectory>${project.build.directory}/dist/lib</outputDirectory>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
@@ -307,7 +301,7 @@
 							<includeScope>runtime</includeScope>
 						</configuration>
 					</execution>
-
+		
 					<!-- aibench plugins -->
 					<execution>
 						<id>copy-dependencies-aibench-plugins</id>
@@ -316,7 +310,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/plugins_bin</outputDirectory>
+							<outputDirectory>${project.build.directory}/dist/plugins_bin</outputDirectory>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
@@ -324,7 +318,7 @@
 							<includeScope>runtime</includeScope>
 						</configuration>
 					</execution>
-
+		
 					<!-- rest of dependencies inside current aibench plugin -->
 					<execution>
 						<id>copy-dependencies-plugin-dependencies</id>
@@ -388,26 +382,21 @@
 			</plugin>
 		</plugins>
 
-		<!-- ignore /src/main/resources/scripts and /src/main/resources/conf, which 
-			will go to the root of the target directory, not inside the current aibench 
-			plugin -->
+		<!-- filtering on plugin.xml -->
 		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>false</filtering>
-				<excludes>
-					<exclude>conf/**/*</exclude>
-					<exclude>conf</exclude>
-					<exclude>scripts/**/*</exclude>
-					<exclude>scripts</exclude>
-				</excludes>
-			</resource>
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
 				<includes>
 					<include>plugin.xml</include>
 				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>plugin.xml</exclude>
+				</excludes>
 			</resource>
 		</resources>
 	</build>

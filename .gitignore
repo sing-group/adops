@@ -5,9 +5,10 @@
 
 # Maven
 target
-bdbm-*/target
 **/pom.xml.versionsBackup
 
 # General
 bak
 data
+fastas
+projects
