@@ -37,6 +37,7 @@ import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.sing.adops.configuration.TCoffeeConfiguration;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.datatypes.TCoffeeOutput;
+import es.uvigo.ei.sing.adops.operations.running.FileFormatException;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
 import es.uvigo.ei.sing.adops.operations.running.ProcessOperation;
 import es.uvigo.ei.sing.adops.operations.running.tcoffee.TCoffeeProcessManager.InformativePositions;
@@ -106,6 +107,7 @@ public class TCoffeeOperation
 			this.checkInterrupted();
 
 			output.setState(this.process.convertDNAIntoAmino(output.getInputFile(), output.getProteinFile()));
+			output.checkProteinFile();
 
 			// Step 2 - Initial alignment
 			// TODO: CACHE/BACKUP
@@ -116,16 +118,23 @@ public class TCoffeeOperation
 			this.checkInterrupted();
 
 			output.setState(this.process.runAlignment(output.getInitialFastaFile(), this.configuration.getAlignMethod(), output.getOutputFile()));
-
+			output.checkInitialAlnFile();
+			output.checkInitialHtmlFile();
+			
 			this.checkInterrupted();
 
 			output.setState(this.process.evaluateAlignment(output.getInitialAlnFile(), output.getOutputFile()));
+			output.checkInitialScoreFile();
 
 			this.checkInterrupted();
 
 			final InformativePositions initialIP = this.process.computeInformativePositions(
-				output.getInitialAlnFile(), output.getInitialScoreFile(), output.getOutputFile(), this.configuration.getMinScore()
+				output.getInitialAlnFile(), output.getInitialScoreFile(),
+				output.getInitialIpiIFile(),
+				output.getInitialBSAlnFile(), output.getInitialIpiBSFile(),
+				output.getOutputFile(), this.configuration.getMinScore()
 			);
+			output.checkInitialIpiFile();
 
 			this.checkInterrupted();
 
@@ -182,15 +191,18 @@ public class TCoffeeOperation
 						this.checkInterrupted();
 
 						final InformativePositions currentIP = this.process.computeInformativePositions(
-							output.getCurrentAlnFile(), output.getCurrentScoreFile(), output.getOutputFile(), this.configuration.getMinScore()
+							output.getCurrentAlnFile(), output.getCurrentScoreFile(),
+							output.getCurrentIpiIFile(),
+							output.getCurrentBSAlnFile(), output.getCurrentIpiBSFile(),
+							output.getOutputFile(), this.configuration.getMinScore()
 						);
 
 						// TODO core & i heuristics
 						// bs heuristic
 						this.checkInterrupted();
 						if (
-							currentIP.BS > prevBestIP.BS + TCoffeeOperation.MIN_GAIN &&
-							(currentIP.BS > bestIP.BS || currentIP.BS == bestIP.BS && currentIP.S > bestIP.S)
+							currentIP.getBS() > prevBestIP.getBS() + TCoffeeOperation.MIN_GAIN &&
+							(currentIP.getBS() > bestIP.getBS() || currentIP.getBS() == bestIP.getBS() && currentIP.getS() > bestIP.getS())
 						) {
 							bestIP = currentIP;
 							bestAlnFile = output.getCurrentAlnFile();
@@ -210,7 +222,7 @@ public class TCoffeeOperation
 						output.increaseSecondLevelCounter();
 					}
 
-					if (prevBestIP.S == bestIP.S) {
+					if (prevBestIP.getS() == bestIP.getS()) {
 						// unable to improve. TODO check this
 						break;
 					}
@@ -270,13 +282,16 @@ public class TCoffeeOperation
 					final InformativePositions renamedFinalRealignmentBestIP = this.process.computeInformativePositions(
 						output.getRenamedFinalRealingmentAlnFile(),
 						output.getRenamedFinalRealingmentScoreFile(),
+						output.getRenamedFinalIpiIFile(),
+						output.getRenamedFinalBSAlnFile(),
+						output.getRenamedFinalIpiBSFile(),
 						output.getOutputFile(),
 						this.configuration.getMinScore()
 					);
 					this.println(
 						String.format(
-							"Final alignment: Score=%d IP=%d BS=%d\n", renamedFinalRealignmentBestIP.S, renamedFinalRealignmentBestIP.I,
-							renamedFinalRealignmentBestIP.BS
+							"Final alignment: Score=%d IP=%d BS=%d\n", renamedFinalRealignmentBestIP.getS(), renamedFinalRealignmentBestIP.getI(),
+							renamedFinalRealignmentBestIP.getBS()
 						)
 					);
 				}
@@ -302,13 +317,15 @@ public class TCoffeeOperation
 
 			return output;
 		} catch (IOException ioe) {
-			throw new OperationException("", "I/O error while running T-Coffee", ioe);
+			throw new OperationException(this.process.getLastCommand(), "I/O error while running T-Coffee", ioe);
 		} catch (OperationException oe) {
 			if (oe.getCause() instanceof InterruptedException) {
 				throw (InterruptedException) oe.getCause();
 			} else {
 				throw new OperationException(oe.getCommand(), "Error while running T-Coffee: " + oe.getMessage(), oe);
 			}
+		} catch (FileFormatException ffe) {
+			throw new OperationException(this.process.getLastCommand(), "File format error: " + ffe.getFile().getAbsolutePath(), ffe);
 		}
 	}
 

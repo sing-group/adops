@@ -54,11 +54,11 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
-import es.uvigo.ei.sing.adops.Utils;
 import es.uvigo.ei.sing.adops.configuration.Configuration;
 import es.uvigo.ei.sing.adops.configuration.TCoffeeConfiguration;
 import es.uvigo.ei.sing.adops.datatypes.HasConfiguration;
 import es.uvigo.ei.sing.adops.operations.running.tcoffee.AlignMethod;
+import es.uvigo.ei.sing.adops.util.Utils;
 
 public class EditConfigurationView extends JPanel {
 	private static final String PROPERTY_VALUE = "PROPERTY_VALUE";

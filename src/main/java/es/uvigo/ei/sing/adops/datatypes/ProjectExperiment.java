@@ -45,8 +45,8 @@ import org.apache.log4j.Logger;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Clipboard;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
-import es.uvigo.ei.sing.adops.Utils;
 import es.uvigo.ei.sing.adops.configuration.Configuration;
+import es.uvigo.ei.sing.adops.util.Utils;
 
 @Datatype(structure = Structure.COMPLEX, namingMethod = "getName")
 public class ProjectExperiment extends Observable implements Experiment, Observer {

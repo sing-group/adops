@@ -29,7 +29,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
-import es.uvigo.ei.sing.adops.FastaUtils;
+import es.uvigo.ei.sing.adops.util.FastaUtils;
 import es.uvigo.ei.sing.alter.parser.ParseException;
 import es.uvigo.ei.sing.alter.types.FastaSequence;
 import es.uvigo.ei.sing.alter.types.Sequence;

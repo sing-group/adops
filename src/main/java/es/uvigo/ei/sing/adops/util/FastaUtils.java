@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package es.uvigo.ei.sing.adops;
+package es.uvigo.ei.sing.adops.util;
 
 import java.io.File;
 import java.io.IOException;

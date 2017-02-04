@@ -295,5 +295,7 @@
 				icon="icons/results.png"
 			/> 
 		</extension>
+		
+		<extension uid="aibench.workbench" name="aibench.workbench.error.notifier" class="es.uvigo.ei.sing.adops.views.error.ADOPSErrorNotifier" />
 	</extensions>
 </plugin>

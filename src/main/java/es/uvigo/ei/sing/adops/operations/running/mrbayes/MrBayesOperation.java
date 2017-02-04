@@ -95,9 +95,9 @@ public class MrBayesOperation extends ProcessOperation<MrBayesProcessManager, Mr
 		try {
 			this.checkInterrupted();
 
-			DefaultFactory factory = new DefaultFactory();
-			Reader fastaReader = factory.getReader("linux", "clustal", "fasta", false, "logger");
-			Writer nexusWriter = factory.getWriter("linux", "mrbayes", "nexus", false, false, false, false, "logger");
+			final DefaultFactory factory = new DefaultFactory();
+			final Reader fastaReader = factory.getReader("linux", "clustal", "fasta", false, "logger");
+			final Writer nexusWriter = factory.getWriter("linux", "mrbayes", "nexus", false, false, false, false, "logger");
 
 			this.checkInterrupted();
 
@@ -118,9 +118,9 @@ public class MrBayesOperation extends ProcessOperation<MrBayesProcessManager, Mr
 
 			this.println("MrBayes output code: " + output.getState());
 			if (output.getState() == 134) {
-				throw new OperationException("", "Missing input. You are probably using a path too long.");
+				throw new OperationException("Missing input. You are probably using a path too long.");
 			} else if (output.getState() != 0) {
-				throw new OperationException("", "Could not converge. Please, check output log.");
+				throw new OperationException("Could not converge. Please, check output log.");
 			}
 
 			this.checkInterrupted();
@@ -134,12 +134,12 @@ public class MrBayesOperation extends ProcessOperation<MrBayesProcessManager, Mr
 			if (oe.getCause() instanceof InterruptedException) {
 				throw (InterruptedException) oe.getCause();
 			} else {
-				throw new OperationException(oe.getCommand(), "Error while running MrBayes: " + oe.getMessage(), oe);
+				throw new OperationException(oe.getCommand(), "Error while running MrBayes: " + oe.getMessage() + "  (processing input file: " + this.getInputFile() + ")", oe);
 			}
 		} catch (ParseException pe) {
-			throw new OperationException("", "Error while using ALTER", pe);
+			throw new OperationException("Error while using ALTER (processing input file: " + this.getInputFile() + ")", pe);
 		} catch (IOException ioe) {
-			throw new OperationException("", "I/O error while running MrBayes: " + ioe.getMessage(), ioe);
+			throw new OperationException(this.process.getLastCommand(), "I/O error while running MrBayes: " + ioe.getMessage() + " (processing input file: " + this.getInputFile() + ")", ioe);
 		}
 	}
 

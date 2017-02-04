@@ -157,7 +157,7 @@ public abstract class CallableOperation<V> implements Callable<V> {
 	@Override
 	public V call() throws OperationException {
 		if (!this.getOutputFolder().isDirectory() && !this.getOutputFolder().mkdirs()) {
-			throw new OperationException("", "Output folder does not exist and can not be created");
+			throw new OperationException("Output folder does not exist and can not be created");
 		}
 
 		try {

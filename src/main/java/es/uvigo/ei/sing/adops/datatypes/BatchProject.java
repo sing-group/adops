@@ -36,8 +36,8 @@ import org.apache.log4j.Logger;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.ListElements;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
-import es.uvigo.ei.sing.adops.Utils;
 import es.uvigo.ei.sing.adops.configuration.Configuration;
+import es.uvigo.ei.sing.adops.util.Utils;
 
 @Datatype(namingMethod = "getName", structure = Structure.LIST)
 public class BatchProject extends Observable implements HasConfiguration, Observer {
@@ -70,7 +70,12 @@ public class BatchProject extends Observable implements HasConfiguration, Observ
 		this.running = false;
 
 		if (this.folder.exists()) {
-			throw new IllegalArgumentException("Batch project folder already exists (" + this.folder + ")");
+			if (this.folder.listFiles().length > 0)
+				throw new IllegalArgumentException("Batch project folder already exists and it is not empty (" + this.folder + ")");
+			if (!this.folder.canRead())
+				throw new IllegalArgumentException("Batch project folder is not readable (" + this.folder + ")");
+			if (!this.folder.canWrite())
+				throw new IllegalArgumentException("Batch project folder is not writeable (" + this.folder + ")");
 		} else if (!this.folder.mkdirs()) {
 			throw new IllegalArgumentException(
 				"Batch project folder (" + folder.getAbsolutePath() + ") could not be created"

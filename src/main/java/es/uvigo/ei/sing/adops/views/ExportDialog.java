@@ -55,8 +55,8 @@ import javax.swing.event.ChangeListener;
 import org.apache.commons.io.FileUtils;
 
 import es.uvigo.ei.aibench.workbench.Workbench;
-import es.uvigo.ei.sing.adops.FastaUtils;
 import es.uvigo.ei.sing.adops.configuration.Configuration;
+import es.uvigo.ei.sing.adops.util.FastaUtils;
 import es.uvigo.ei.sing.alter.converter.DefaultFactory;
 import es.uvigo.ei.sing.alter.converter.ProgramOptions;
 import es.uvigo.ei.sing.alter.parser.ParseException;

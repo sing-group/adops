@@ -21,55 +21,39 @@
  */
 package es.uvigo.ei.sing.adops.operations.running;
 
-public class OperationException extends Exception {
+import java.io.File;
+
+public class FileFormatException extends Exception {
 	private static final long serialVersionUID = 1L;
 
-	private final Command command;
-
-	public OperationException(Command command) {
-		this.command = command;
-	}
-
-	public OperationException(Command command, String message) {
-		super(message);
-		this.command = command;
-	}
-
-	public OperationException(Command command, Throwable cause) {
-		super(cause);
-		this.command = command;
-	}
-
-	public OperationException(Command command, String message, Throwable cause) {
-		super(message, cause);
-		this.command = command;
-	}
-
-	public OperationException(String message) {
-		super(message);
-		this.command = null;
-	}
-
-	public OperationException(String message, Throwable cause) {
-		super(message, cause);
-		this.command = null;
-	}
-
-	public OperationException() {
-		this.command = null;
-	}
-
-	public OperationException(Throwable cause) {
-		super(cause);
-		this.command = null;
-	}
-
-	public Command getCommand() {
-		return command;
-	}
+	private final File file;
 	
-	@Override
-	public String getMessage() {
-		return super.getMessage();
+	public FileFormatException(File file) {
+		this.file = file;
 	}
+
+	public FileFormatException(File file, String message) {
+		super(message);
+		this.file = file;
+	}
+
+	public FileFormatException(File file, Throwable cause) {
+		super(cause);
+		this.file = file;
+	}
+
+	public FileFormatException(File file, String message, Throwable cause) {
+		super(message, cause);
+		this.file = file;
+	}
+
+	public FileFormatException(File file, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+		this.file = file;
+	}
+
+	public File getFile() {
+		return file;
+	}
+
 }

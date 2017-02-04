@@ -36,6 +36,7 @@ import es.uvigo.ei.sing.adops.configuration.CodeMLConfiguration;
 import es.uvigo.ei.sing.adops.configuration.ExecutableConfigurationUtils;
 import es.uvigo.ei.sing.adops.datatypes.CodeMLOutput;
 import es.uvigo.ei.sing.adops.operations.GetVersions;
+import es.uvigo.ei.sing.adops.operations.running.Command;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
 import es.uvigo.ei.sing.adops.operations.running.ProcessManager;
 
@@ -87,7 +88,7 @@ public abstract class CodeMLProcessManager extends ProcessManager {
 		try {
 			return pmClass.getConstructor(CodeMLConfiguration.class).newInstance(configuration);
 		} catch (Exception e) {
-			throw new OperationException("", "Unexpected error while creating CodeMLProcessManager", e);
+			throw new OperationException("Unexpected error while creating CodeMLProcessManager", e);
 		}
 	}
 
@@ -121,7 +122,7 @@ public abstract class CodeMLProcessManager extends ProcessManager {
 	}
 
 	protected int runCodeML(String params, File outputFile, boolean append, String[] envp, File directory) throws OperationException, InterruptedException {
-		final String command = this.getCodeMLCommand() + " " + params;
+		final Command command = new Command(this.getCodeMLCommand() + " " + params, envp, directory);
 		int result = -1;
 
 		PrintStream ps = null;
@@ -132,14 +133,14 @@ public abstract class CodeMLProcessManager extends ProcessManager {
 					this.addPrinter(ps);
 				}
 
-				result = this.runCommand(command, envp, directory);
+				result = this.runCommand(command);
 
 				if (ps != null) {
 					this.removePrinter(ps);
 				}
 			}
 		} catch (IOException ioe) {
-			throw new OperationException(command, "I/O error while running CodeML: " + command, ioe);
+			throw new OperationException(command, "I/O error while running CodeML: " + (this.getCodeMLCommand() + " " + params), ioe);
 		} finally {
 			if (ps != null) {
 				ps.close();

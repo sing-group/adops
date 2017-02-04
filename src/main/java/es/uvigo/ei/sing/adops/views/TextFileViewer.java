@@ -55,7 +55,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import es.uvigo.ei.aibench.workbench.Workbench;
-import es.uvigo.ei.sing.adops.FastaUtils;
+import es.uvigo.ei.sing.adops.util.FastaUtils;
 import say.swing.JFontChooser;
 
 public class TextFileViewer extends JPanel {

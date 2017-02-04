@@ -184,7 +184,7 @@ public class CodeMLOutput extends AbstractOperationOutput {
 					}
 					bebs = nebs = null;
 				} else if (model != null && line.startsWith("Naive Empirical Bayes")) {
-					nebs = new HashMap<Integer, Float>();
+					nebs = new HashMap<>();
 					bebs = null;
 
 					int skipLines = 0;
@@ -195,7 +195,7 @@ public class CodeMLOutput extends AbstractOperationOutput {
 						nebs.put(Integer.valueOf(splits[0]), Float.valueOf(splits[2].replaceAll("\\*", "")));
 					}
 				} else if (model != null && line.startsWith("Bayes Empirical Bayes")) {
-					bebs = new HashMap<Integer, Float>();
+					bebs = new HashMap<>();
 
 					int skipLines = 0;
 					while ((line = br.readLine()) != null && skipLines++ < 4);
@@ -207,7 +207,7 @@ public class CodeMLOutput extends AbstractOperationOutput {
 				}
 				
 				if (model != null && nebs != null && bebs != null) {
-					Map<Integer, Confidence> modelConfidences = new HashMap<Integer, Confidence>();
+					final Map<Integer, Confidence> modelConfidences = new HashMap<>();
 					for (Integer i : nebs.keySet()) {
 						if (bebs.containsKey(i)) {
 							modelConfidences.put(movedIndexes.get(i), new Confidence(bebs.get(i), nebs.get(i)));

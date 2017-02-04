@@ -41,8 +41,6 @@ import es.uvigo.ei.aibench.core.operation.annotation.Direction;
 import es.uvigo.ei.aibench.core.operation.annotation.Operation;
 import es.uvigo.ei.aibench.core.operation.annotation.Port;
 import es.uvigo.ei.aibench.core.operation.annotation.Progress;
-import es.uvigo.ei.sing.adops.Utils;
-import es.uvigo.ei.sing.adops.Utils.LinesFilter;
 import es.uvigo.ei.sing.adops.datatypes.CodeMLOutput;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.datatypes.ExperimentOutput;
@@ -52,6 +50,8 @@ import es.uvigo.ei.sing.adops.datatypes.TCoffeeOutput;
 import es.uvigo.ei.sing.adops.operations.running.codeml.CodeMLOperation;
 import es.uvigo.ei.sing.adops.operations.running.mrbayes.MrBayesOperation;
 import es.uvigo.ei.sing.adops.operations.running.tcoffee.TCoffeeOperation;
+import es.uvigo.ei.sing.adops.util.Utils;
+import es.uvigo.ei.sing.adops.util.Utils.LinesFilter;
 
 @Operation(name = "Run Experiment")
 public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput> {
@@ -129,12 +129,12 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			return this.experimentOutput = new ExperimentOutput(this.experiment);
 		} catch (IOException ioe) {
 			this.clearWhenException();
-			throw new OperationException("", "Error initializing execution", ioe);
+			throw new OperationException("Error initializing execution", ioe);
 		} catch (InterruptedException ie) {
 			return null;
 		} catch (Exception e) {
 			this.clearWhenException();
-			throw new OperationException("", "Unexpected error initializing execution", e);
+			throw new OperationException("Unexpected error initializing execution", e);
 		}
 	}
 
@@ -175,14 +175,17 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			this.experimentOutput.setTCoffeeOutput(output);
 
 			return output;
+		} catch (OperationException oe) {
+			this.clearWhenException();
+			throw oe;
 		} catch (IOException ioe) {
 			this.clearWhenException();
-			throw new OperationException("", "I/O error while running T-Coffee", ioe);
+			throw new OperationException("I/O error while running T-Coffee", ioe);
 		} catch (InterruptedException ie) {
 			return null;
 		} catch (Exception e) {
 			this.clearWhenException();
-			throw new OperationException("", "Unexpected error running T-Coffee", e);
+			throw new OperationException("Unexpected error running T-Coffee", e);
 		}
 	}
 
@@ -217,12 +220,12 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			throw oe;
 		} catch (IOException ioe) {
 			this.clearWhenException();
-			throw new OperationException("", "I/O error while running MrBayes", ioe);
+			throw new OperationException("I/O error while running MrBayes", ioe);
 		} catch (InterruptedException ie) {
 			return null;
 		} catch (Exception e) {
 			this.clearWhenException();
-			throw new OperationException("", "Unexpected error running MrBayes", e);
+			throw new OperationException("Unexpected error running MrBayes", e);
 		}
 	}
 
@@ -253,14 +256,17 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			this.experimentOutput.setCodeMLOutput(output);
 
 			return output;
+		} catch (OperationException oe) {
+			this.clearWhenException();
+			throw oe;
 		} catch (IOException ioe) {
 			this.clearWhenException();
-			throw new OperationException("", "I/O error while running CodeML", ioe);
+			throw new OperationException("I/O error while running CodeML", ioe);
 		} catch (InterruptedException ie) {
 			return null;
 		} catch (Exception e) {
 			this.clearWhenException();
-			throw new OperationException("", "Unexpected error running CodeML", e);
+			throw new OperationException("Unexpected error running CodeML", e);
 		}
 	}
 
@@ -295,14 +301,14 @@ public class ExecuteExperimentBySteps extends CallableOperation<ExperimentOutput
 			return this.experimentOutput;
 		} catch (IOException ioe) {
 			this.clearWhenException();
-			throw new OperationException("", "Error generating result", ioe);
+			throw new OperationException("Error generating result", ioe);
 		} catch (InterruptedException ie) {
 			this.clearWhenInterrupted();
 
 			return null;
 		} catch (Exception e) {
 			this.clearWhenException();
-			throw new OperationException("", "Unexpected error summarizing results", e);
+			throw new OperationException("Unexpected error summarizing results", e);
 		}
 	}
 

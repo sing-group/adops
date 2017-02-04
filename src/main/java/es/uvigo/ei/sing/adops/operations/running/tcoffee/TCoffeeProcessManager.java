@@ -25,17 +25,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 
 import es.uvigo.ei.sing.adops.configuration.ExecutableConfigurationUtils;
 import es.uvigo.ei.sing.adops.configuration.TCoffeeConfiguration;
 import es.uvigo.ei.sing.adops.operations.GetVersions;
+import es.uvigo.ei.sing.adops.operations.running.Command;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
 import es.uvigo.ei.sing.adops.operations.running.ProcessManager;
 
@@ -86,7 +89,7 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 		try {
 			return pmClass.getConstructor(TCoffeeConfiguration.class).newInstance(configuration);
 		} catch (Exception e) {
-			throw new OperationException("", "Unexpected error while creating TCoffeeProcessManager", e);
+			throw new OperationException("Unexpected error while creating TCoffeeProcessManager", e);
 		}
 	}
 
@@ -113,34 +116,68 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 	}
 
 	protected int runTCoffee(String params, File outputFile, boolean append, String[] envp, File directory) throws OperationException {
-		final String command = this.tCoffeeCommand + " " + params;
+		final Command command = new Command(this.tCoffeeCommand + " " + params, envp, directory);
+		
 		int result = -1;
 
-		PrintStream ps = null;
-		try {
-			synchronized (this) {
+		synchronized (this) {
+			PrintStream ps = null;
+			try {
 				if (outputFile != null) {
 					ps = new PrintStream(new FileOutputStream(outputFile, append));
 					this.addPrinter(ps);
 				}
-
-				result = this.runCommand(command, envp, directory);
-
+				
+				this.renameErrorFileInDirectory(command.getDirectory());
+				
+				result = this.runCommand(command);
+				
+				this.checkErrorInDirectory(command);
+			} catch (IOException ioe) {
+				throw new OperationException(command, "i/O error while running T-Coffee: " + (this.tCoffeeCommand + " " + params), ioe);
+			} catch (InterruptedException ie) {
+				throw new OperationException(command, "T-Coffee interrupted", ie);
+			} finally {
 				if (ps != null) {
 					this.removePrinter(ps);
+					ps.close();
 				}
-			}
-		} catch (IOException ioe) {
-			throw new OperationException(command, "I/O error while running T-Coffee: " + command, ioe);
-		} catch (InterruptedException ie) {
-			throw new OperationException(command, "T-Coffee interrupted", ie);
-		} finally {
-			if (ps != null) {
-				ps.close();
 			}
 		}
 
 		return result;
+	}
+	
+	protected void renameErrorFileInDirectory(final File directory) throws IOException {
+		final File errorFile = new File(directory, "t_coffee.ErrorReport").getAbsoluteFile();
+
+		if (errorFile.exists()) {
+			final String baseName = errorFile + ".bak";
+			
+			File newFile = new File(baseName);
+			int index = 1;
+			while (newFile.exists()) {
+				newFile = new File(baseName + index++);
+			}
+			
+			Files.move(errorFile.toPath(), newFile.toPath());
+		}
+	}
+	
+	protected void checkErrorInDirectory(final Command command) throws OperationException {
+		final File errorFile = new File(command.getDirectory(), "t_coffee.ErrorReport");
+		
+		if (errorFile.exists()) {
+			try (Stream<String> lines = Files.lines(errorFile.toPath())) {
+				final String commandLine = command.getCommand();
+				
+				if (lines.anyMatch(line -> line.contains(commandLine))) {
+					throw new OperationException(command, "Error executing command.");
+				}
+			} catch (IOException e) {
+				throw new OperationException(command, "Error checking command", e);
+			}
+		}
 	}
 
 	public abstract boolean isCompatibleWith(String version);
@@ -151,8 +188,8 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 
 	public abstract int evaluateAlignment(File alignmentFile, File output) throws OperationException;
 
-	public abstract InformativePositions computeInformativePositions(File alignmentFile, File scoreFile, File consoleOutFile, int minScore)
-		throws OperationException;
+	public abstract InformativePositions computeInformativePositions(File alignmentFile, File scoreFile, File ipiIFile, File bsAlignmentFile, File ipiBSFile, File consoleOutFile, int minScore)
+	throws OperationException;
 
 	public abstract int generateDivFile(File alnFile, File divFile) throws OperationException;
 
@@ -176,10 +213,28 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 
 	protected abstract int calculateS(File scoreFile, File outputFile) throws OperationException;
 
-	protected abstract int calculateBS(File alignmentFile, File scoreFile, File ipiFile, File outputFile, int minScore) throws OperationException;
+	protected abstract int calculateBS(File alignmentFile, File bsAlignmentFile, File scoreFile, File ipiFile, File outputFile, int minScore) throws OperationException;
 
 	public static class InformativePositions {
-		public int I, S, BS;
+		private final int i, s, bs;
+		
+		public InformativePositions(int i, int s, int bs) {
+			this.i = i;
+			this.s = s;
+			this.bs = bs;
+		}
+
+		public int getI() {
+			return i;
+		}
+		
+		public int getS() {
+			return s;
+		}
+		
+		public int getBS() {
+			return bs;
+		}
 	}
 
 	public static class SequenceDiversity implements Comparable<SequenceDiversity> {

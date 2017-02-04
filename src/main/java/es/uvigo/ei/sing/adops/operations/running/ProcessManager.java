@@ -22,7 +22,6 @@
 package es.uvigo.ei.sing.adops.operations.running;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -41,11 +40,14 @@ public abstract class ProcessManager {
 	private final Map<Object, Printer> printers;
 
 	private final AtomicBoolean isInterrupted = new AtomicBoolean(false);
-
+	
+	private Command lastCommand;
+	
 	public ProcessManager() {
 		super();
 
 		this.printers = new LinkedHashMap<>();
+		this.lastCommand = null;
 	}
 
 	protected Logger getLogger() {
@@ -113,24 +115,19 @@ public abstract class ProcessManager {
 			ps.println(line);
 		}
 	}
+	
+	public synchronized Command getLastCommand() {
+		return this.lastCommand;
+	}
 
-	protected synchronized int runCommand(String command) throws OperationException,
-		InterruptedException {
+	protected synchronized int runCommand(Command command)
+	throws OperationException, InterruptedException {
 		return this.runCommand(command, this.getPrinters());
 	}
 
-	protected synchronized int runCommand(String command, String[] envp, File dir)
-		throws OperationException, InterruptedException {
-		return this.runCommand(command, envp, dir, this.getPrinters());
-	}
-
-	protected synchronized int runCommand(String command, Printer... outs)
-		throws OperationException, InterruptedException {
-		return this.runCommand(command, null, null, outs);
-	}
-
-	protected synchronized int runCommand(String command, String[] envp, File dir, Printer... outs)
+	protected synchronized int runCommand(Command command, Printer... outs)
 	throws OperationException, InterruptedException {
+		this.lastCommand = command;
 		this.activeProcess = null;
 
 		if (this.getLogger() != null)
@@ -147,10 +144,10 @@ public abstract class ProcessManager {
 		try {
 			Runtime.getRuntime().addShutdownHook(hook);
 
-			if (envp == null && dir == null) {
-				this.activeProcess = Runtime.getRuntime().exec(command);
+			if (command.getEnvp() == null && command.getDirectory() == null) {
+				this.activeProcess = Runtime.getRuntime().exec(command.getCommand());
 			} else {
-				this.activeProcess = Runtime.getRuntime().exec(command, envp, dir);
+				this.activeProcess = Runtime.getRuntime().exec(command.getCommand(), command.getEnvp(), command.getDirectory());
 			}
 
 			this.checkInterrupted();

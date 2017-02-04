@@ -34,7 +34,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import es.uvigo.ei.sing.adops.Utils;
+import es.uvigo.ei.sing.adops.util.Utils;
 
 public class Configuration extends Observable implements IConfiguration, Observer {
 	private final static Logger LOG = Logger.getLogger(Configuration.class);

@@ -28,7 +28,9 @@ import java.util.Set;
 
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
+import es.uvigo.ei.sing.adops.operations.running.FileFormatException;
 import es.uvigo.ei.sing.adops.operations.running.tcoffee.AlignMethod;
+import es.uvigo.ei.sing.adops.util.IOUtils;
 
 @Datatype(structure = Structure.COMPLEX)
 public class TCoffeeOutput extends AbstractOperationOutput {
@@ -111,8 +113,20 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".aln");
 	}
 
+	public File getCurrentBSAlnFile() {
+		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + "_bs.aln");
+	}
+
 	public File getCurrentTmpAlnFile() {
 		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".tmp.aln");
+	}
+
+	public File getCurrentIpiIFile() {
+		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".ipi_i");
+	}
+	
+	public File getCurrentIpiBSFile() {
+		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".ipi_bs");
 	}
 
 	public File getCurrentDivFile() {
@@ -203,6 +217,10 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".aln");
 	}
 
+	public File getInitialBSAlnFile() {
+		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + "_bs.aln");
+	}
+
 	public File getInitialDivFile() {
 		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".aln.div");
 	}
@@ -213,6 +231,14 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 
 	public File getInitialHtmlFile() {
 		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".html");
+	}
+
+	public File getInitialIpiIFile() {
+		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".ipi_i.fasta");
+	}
+	
+	public File getInitialIpiBSFile() {
+		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".ipi_bs.fasta");
 	}
 
 	public File getReducedSetAlnFile() {
@@ -252,11 +278,23 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 	}
 
 	public File getFinalUsedAlnFile() {
-		return new File(this.outputFolder, this.getResultsPrefix() + "final.aln");
+		return new File(this.outputFolder, this.getResultsPrefix() + "_final.aln");
 	}
 
 	public File getFinalScoreFile() {
-		return new File(this.outputFolder, this.getResultsPrefix() + "final.score_ascii");
+		return new File(this.outputFolder, this.getResultsPrefix() + "_final.score_ascii");
+	}
+
+	public File getRenamedFinalIpiIFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + "_final.ipi_i");
+	}
+
+	public File getRenamedFinalBSAlnFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + "_final_bs.aln");
+	}
+	
+	public File getRenamedFinalIpiBSFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + "_final.ipi_bs");
 	}
 
 	public int getFirstLevelCounter() {
@@ -265,6 +303,30 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 
 	public int getSecondLevelCounter() {
 		return this.secondLevelCounter;
+	}
+
+	public void checkProteinFile() throws FileFormatException {
+		IOUtils.checkIfFileIsEmpty(this.getProteinFile());
+	}
+
+	public void checkInitialAlnFile() throws FileFormatException {
+		IOUtils.checkIfFileIsEmpty(this.getInitialAlnFile());
+	}
+
+	public void checkInitialHtmlFile() throws FileFormatException {
+		IOUtils.checkIfFileIsEmpty(this.getInitialHtmlFile());
+	}
+
+	public void checkInitialScoreFile() throws FileFormatException {
+		IOUtils.checkIfFileIsEmpty(this.getInitialScoreFile());
+	}
+	
+	public void checkInitialIpiFile() throws FileFormatException {
+		IOUtils.checkIfFileIsEmpty(this.getInitialIpiIFile());
+	}
+	
+	public void checkOutputFile() throws FileFormatException {
+		IOUtils.checkIfFileIsEmpty(this.getOutputFile());
 	}
 
 }

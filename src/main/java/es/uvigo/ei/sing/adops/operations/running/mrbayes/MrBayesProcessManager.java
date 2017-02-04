@@ -34,6 +34,7 @@ import es.uvigo.ei.sing.adops.configuration.ExecutableConfigurationUtils;
 import es.uvigo.ei.sing.adops.configuration.MrBayesConfiguration;
 import es.uvigo.ei.sing.adops.datatypes.MrBayesOutput;
 import es.uvigo.ei.sing.adops.operations.GetVersions;
+import es.uvigo.ei.sing.adops.operations.running.Command;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
 import es.uvigo.ei.sing.adops.operations.running.ProcessManager;
 
@@ -87,7 +88,7 @@ public abstract class MrBayesProcessManager extends ProcessManager {
 		try {
 			return pmClass.getConstructor(MrBayesConfiguration.class).newInstance(configuration);
 		} catch (Exception e) {
-			throw new OperationException("", "Unexpected error while creating MrBayesProcessManager", e);
+			throw new OperationException("Unexpected error while creating MrBayesProcessManager", e);
 		}
 	}
 
@@ -126,18 +127,20 @@ public abstract class MrBayesProcessManager extends ProcessManager {
 	}
 
 	protected int runMrBayes(String params) throws OperationException {
+		final Command command = new Command(this.mrBayesCommand + " " + params);
 		try {
-			return this.runCommand(this.mrBayesCommand + " " + params);
+			return this.runCommand(command);
 		} catch (InterruptedException e) {
-			throw new OperationException(this.mrBayesCommand + " " + params, "Error running MrBayes", e);
+			throw new OperationException(command, "Error running MrBayes", e);
 		}
 	}
 
 	protected int runMrBayes(String params, String[] envp, File directory) throws OperationException {
+		final Command command = new Command(this.mrBayesCommand + " " + params, envp, directory);
 		try {
-			return this.runCommand(this.mrBayesCommand + " " + params, envp, directory);
+			return this.runCommand(command);
 		} catch (InterruptedException e) {
-			throw new OperationException(this.mrBayesCommand + " " + params, "Error runing MrBayes", e);
+			throw new OperationException(command, "Error runing MrBayes", e);
 		}
 	}
 

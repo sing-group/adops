@@ -21,20 +21,22 @@
  */
 package es.uvigo.ei.sing.adops.operations.running.tcoffee;
 
+import static java.lang.Math.max;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
 
-import es.uvigo.ei.sing.adops.Utils;
 import es.uvigo.ei.sing.adops.configuration.TCoffeeConfiguration;
+import es.uvigo.ei.sing.adops.operations.running.FileFormatException;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
+import es.uvigo.ei.sing.adops.util.IOUtils;
+import es.uvigo.ei.sing.adops.util.Utils;
 
 public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	public TCoffeeDefaultProcessManager(TCoffeeConfiguration configuration)
@@ -69,30 +71,30 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 		return this.runTCoffee(tCoffeeParams, outputFile, true);
 	}
 
-	public InformativePositions computeInformativePositions(File alignmentFile, File scoreFile, File outputFile, int minScore) throws OperationException {
-		final InformativePositions ip = new InformativePositions();
-
-		File ipiFile;
+	@Override
+	public InformativePositions computeInformativePositions(File alignmentFile, File scoreFile, File ipiIFile, File bsAlignmentFile, File ipiBSFile, File outputFile, int minScore) throws OperationException {
+		// Compute I
+		final int i = this.calculateI(alignmentFile, ipiIFile, outputFile);
 		try {
-			ipiFile = File.createTempFile("ipi", null);
-			ipiFile.deleteOnExit();
+			IOUtils.checkIfFileIsEmpty(ipiIFile);
+		} catch (FileFormatException e) {
+			throw new OperationException(this.getLastCommand(), e.getMessage(), e);
+		}
+		
+		// Compute S
+		final int s = this.calculateS(scoreFile, outputFile);
 
-			// Compute I
-			ip.I = this.calculateI(alignmentFile, ipiFile, outputFile);
-
-			// Compute S
-			ip.S = this.calculateS(scoreFile, outputFile);
-
-			// Compute BS
-			ip.BS = this.calculateBS(alignmentFile, scoreFile, ipiFile, outputFile, minScore);
-
-			this.println(alignmentFile.getName() + " I:" + ip.I + " S:" + ip.S + " BS:" + ip.BS);
-
-		} catch (IOException e) {
-			throw new OperationException(null, "Error creating tmp file", e);
+		// Compute BS
+		final int bs = this.calculateBS(alignmentFile, bsAlignmentFile, scoreFile, ipiBSFile, outputFile, minScore);
+		try {
+			IOUtils.checkIfFileIsEmpty(ipiBSFile);
+		} catch (FileFormatException e) {
+			throw new OperationException(this.getLastCommand(), e.getMessage(), e);
 		}
 
-		return ip;
+		this.println(alignmentFile.getName() + " I:" + i + " S:" + s + " BS:" + bs);
+
+		return new InformativePositions(i, s, bs);
 
 	}
 
@@ -110,7 +112,7 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	}
 
 	@Override
-	protected int calculateBS(File alignmentFile, File scoreFile, File ipiFile, File outputFile, int minScore) throws OperationException {
+	protected int calculateBS(File alignmentFile, File bsAlignmentFile, File scoreFile, File ipiFile, File outputFile, int minScore) throws OperationException {
 		final String tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in %s -struc_in %s -struc_in_f number_aln -action +use_cons +keep [&d-9] +rm_gap 1",
 			alignmentFile.getAbsolutePath(),
@@ -118,16 +120,9 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 			minScore
 		);
 
-		File tmpAlnFile;
-		try {
-			tmpAlnFile = File.createTempFile("tmp", "aln");
-			tmpAlnFile.deleteOnExit();
-			this.runTCoffee(tcoffeeParams, tmpAlnFile, false);
+		this.runTCoffee(tcoffeeParams, bsAlignmentFile, false);
 
-			return this.calculateI(tmpAlnFile, ipiFile, outputFile);
-		} catch (IOException e) {
-			throw new OperationException(null, "Error creating temporary file", e);
-		}
+		return this.calculateI(bsAlignmentFile, ipiFile, outputFile);
 	}
 
 	private void replaceOWithGaps(File inputFile) throws OperationException {
@@ -147,41 +142,48 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	}
 
 	protected int calculateI(File iInputFile, File iOutputFile, File outputFile) throws OperationException {
-		// TODO: Keep fasta.fasta? Add this file to output?
-		final File fastaFileFinal = new File(iOutputFile.getAbsolutePath() + ".fasta");
+		if (!iOutputFile.getName().endsWith(".fasta")) {
+			throw new IllegalArgumentException("iOutputFile must have the '.fasta' suffix");
+		}
+		String iOutputPath = iOutputFile.getAbsolutePath();
+		iOutputPath = iOutputPath.substring(0, iOutputPath.length() - 6);
+		
+		// Command automatically adds the .fasta suffix to the output file.
 		String tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in=%s -output=clustalw_aln -action +convert xX- -out %s",
 			iInputFile.getAbsolutePath(),
-			iOutputFile.getAbsolutePath()
+			iOutputPath
 		);
+		
 		this.runTCoffee(tcoffeeParams, outputFile, true);
 		tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in=%s -output fasta",
 			iOutputFile.getAbsolutePath()
 		);
-		this.runTCoffee(tcoffeeParams, fastaFileFinal, false);
+		this.runTCoffee(tcoffeeParams, iOutputFile, false);
 
-		final List<String> flatSequences = new ArrayList<>();
+		return maxSequenceLength(iOutputFile);
+	}
+
+	protected static int maxSequenceLength(File fastaFile) throws OperationException {
 		String flatSequence = "";
+		int maxLength = 0;
 		try {
-			for (String seq : FileUtils.readLines(fastaFileFinal)) {
+			for (String seq : FileUtils.readLines(fastaFile)) {
 				if (seq.startsWith(">")) {
-					if (!flatSequence.isEmpty())
-						flatSequences.add(flatSequence);
+					maxLength = max(maxLength, flatSequence.length());
+					
 					flatSequence = "";
-				} else
+				} else {
 					flatSequence += seq;
+				}
 			}
 		} catch (IOException e) {
 			throw new OperationException(null, "Error reading intermediate fasta file", e);
 		}
-		if (!flatSequence.contentEquals(""))
-			flatSequences.add(flatSequence);
 
-		int maxLength = 0;
-		for (String seq : flatSequences)
-			if (seq.length() > maxLength)
-				maxLength = seq.length();
+		maxLength = max(maxLength, flatSequence.length());
+		
 		return maxLength;
 	}
 
