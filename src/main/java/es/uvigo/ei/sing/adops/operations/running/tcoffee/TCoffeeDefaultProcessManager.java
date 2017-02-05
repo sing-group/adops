@@ -25,6 +25,8 @@ import static java.lang.Math.max;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
@@ -54,9 +56,9 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 		throws OperationException {
 		final String tcoffeeParams = String.format(
 			"%s %s -run_name %s. -cache=no",
-			fastaFile.getAbsolutePath(),
+			shortenPath(fastaFile.getAbsolutePath(), outputFile.getParentFile()),
 			alignMethod.getTCoffeeString(),
-			fastaFile.getAbsolutePath()
+			shortenPath(fastaFile.getAbsolutePath(), outputFile.getParentFile())
 		);
 
 		return this.runTCoffee(tcoffeeParams, outputFile, true);
@@ -65,7 +67,7 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	public int evaluateAlignment(File alignmentFile, File outputFile) throws OperationException {
 		final String tCoffeeParams = String.format(
 			"-infile=%s -output=score_ascii -special_mode=evaluate -evaluate_mode=t_coffee_fast",
-			alignmentFile.getAbsolutePath()
+			shortenPath(alignmentFile.getAbsolutePath(), outputFile.getParentFile())
 		);
 
 		return this.runTCoffee(tCoffeeParams, outputFile, true);
@@ -115,8 +117,8 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	protected int calculateBS(File alignmentFile, File bsAlignmentFile, File scoreFile, File ipiFile, File outputFile, int minScore) throws OperationException {
 		final String tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in %s -struc_in %s -struc_in_f number_aln -action +use_cons +keep [&d-9] +rm_gap 1",
-			alignmentFile.getAbsolutePath(),
-			scoreFile.getAbsolutePath(),
+			shortenPath(alignmentFile.getAbsolutePath(), bsAlignmentFile.getParentFile()),
+			shortenPath(scoreFile.getAbsolutePath(), bsAlignmentFile.getParentFile()),
 			minScore
 		);
 
@@ -151,14 +153,14 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 		// Command automatically adds the .fasta suffix to the output file.
 		String tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in=%s -output=clustalw_aln -action +convert xX- -out %s",
-			iInputFile.getAbsolutePath(),
+			shortenPath(iInputFile.getAbsolutePath(), outputFile.getParentFile()),
 			iOutputPath
 		);
 		
 		this.runTCoffee(tcoffeeParams, outputFile, true);
 		tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in=%s -output fasta",
-			iOutputFile.getAbsolutePath()
+			shortenPath(iOutputFile.getAbsolutePath(), iOutputFile.getParentFile())
 		);
 		this.runTCoffee(tcoffeeParams, iOutputFile, false);
 
@@ -219,7 +221,7 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	public int removeSequence(String sequenceId, File fastaFile, File newFastaFile) throws OperationException {
 		final String tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in %s -action +keep_name +remove_seq %s",
-			fastaFile.getAbsolutePath(),
+			shortenPath(fastaFile.getAbsolutePath(), newFastaFile.getParentFile()),
 			sequenceId
 		);
 		return this.runTCoffee(tcoffeeParams, newFastaFile, false);
@@ -229,9 +231,9 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	public int runAlingment(File fastaFile, AlignMethod alignMethod, File logFile) throws OperationException {
 		String tcoffeeParams = String.format(
 			"%s %s -run_name %s. -cache=no",
-			fastaFile.getAbsolutePath(),
+			shortenPath(fastaFile.getAbsolutePath(), logFile.getParentFile()),
 			alignMethod.getTCoffeeString(),
-			fastaFile.getAbsolutePath()
+			shortenPath(fastaFile.getAbsolutePath(), logFile.getParentFile())
 		);
 
 		return this.runTCoffee(tcoffeeParams, logFile, true);
@@ -241,7 +243,7 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	public int calculateAlignmentScore(File alnFile, File logFile) throws OperationException {
 		final String tcoffeeParams = String.format(
 			"-infile %s -output=score_ascii -special_mode=evaluate -evaluate_mode=t_coffee_fast",
-			alnFile.getAbsolutePath()
+			shortenPath(alnFile.getAbsolutePath(), logFile.getParentFile())
 		);
 
 		return this.runTCoffee(tcoffeeParams, logFile, true);
@@ -255,7 +257,7 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 
 		final String tcoffeeParams = String.format(
 			"-other_pg seq_reformat -in %s -action +keep_name +extract_seq_list %s",
-			proteinFile.getAbsolutePath(),
+			shortenPath(proteinFile.getAbsolutePath(), resultFile.getParentFile()),
 			remSeqsString
 		);
 
@@ -269,8 +271,8 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 	) throws OperationException {
 		final String tcoffeeParams = String.format(
 			"%s -profile %s %s -cache=no -run_name=%s_rsa_1.",
-			fastaFile.getAbsolutePath(),
-			profile.getAbsolutePath(),
+			shortenPath(fastaFile.getAbsolutePath(), logFile.getParentFile()),
+			shortenPath(profile.getAbsolutePath(), logFile.getParentFile()),
 			alignMethod.getTCoffeeString(),
 			resultsPrefix
 		);
@@ -280,7 +282,7 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 
 	@Override
 	public int convertDNAIntoAmino(File dnaFile, File outputFile) throws OperationException {
-		final String tCoffeeParams = "-other_pg seq_reformat -action +translate -output fasta_seq -in " + dnaFile.getAbsolutePath();
+		final String tCoffeeParams = "-other_pg seq_reformat -action +translate -output fasta_seq -in " + shortenPath(dnaFile.getAbsolutePath(), outputFile.getParentFile());
 
 		return this.runTCoffee(tCoffeeParams, outputFile, true);
 	}
@@ -291,8 +293,8 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 		replaceOWithGaps(alnFile);
 		final String tcoffeeParams = String.format(
 			"-other_pg seq_reformat -action +thread_dna_on_prot_aln -output clustalw -in %s -in2 %s",
-			fasta.getAbsolutePath(),
-			alnFile.getAbsolutePath()
+			shortenPath(fasta.getAbsolutePath(), outputFile.getParentFile()),
+			shortenPath(alnFile.getAbsolutePath(), outputFile.getParentFile())
 		);
 
 		return this.runTCoffee(tcoffeeParams, outputFile, false);
@@ -300,8 +302,18 @@ public class TCoffeeDefaultProcessManager extends TCoffeeProcessManager {
 
 	@Override
 	public int toFastaAln(File clustal, File alnFile) throws OperationException {
-		final String tcoffeeParams = "-other_pg seq_reformat -output fasta_aln -in " + clustal.getAbsolutePath();
+		final String tcoffeeParams = "-other_pg seq_reformat -output fasta_aln -in " + shortenPath(clustal.getAbsolutePath(), alnFile.getParentFile());
 
 		return this.runTCoffee(tcoffeeParams, alnFile, false);
+	}
+	
+	private static String shortenPath(String pathString, File basedir) {
+		final Path path = Paths.get(pathString);
+		final Path pathBasedir = basedir.toPath();
+		
+		final Path relativePath = pathBasedir.relativize(path);
+		final String relativePathString = relativePath.toString();
+		
+		return relativePathString.length() < pathString.length() ? relativePathString : pathString;
 	}
 }

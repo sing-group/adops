@@ -29,6 +29,7 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -37,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
+import es.uvigo.ei.sing.adops.operations.running.Command;
 import es.uvigo.ei.sing.adops.operations.running.OperationException;
 
 public class ADOPSErrorPanel extends JPanel {
@@ -70,10 +72,19 @@ public class ADOPSErrorPanel extends JPanel {
 		if (exception instanceof OperationException) {
 			final OperationException oe = (OperationException) exception;
 			
-			if (oe.getCommand() != null) {
-				final String commandLine = oe.getCommand().getCommand();
+			final Command command = oe.getCommand();
+			if (command != null) {
+				final String commandLine = command.getCommand();
+				final File directory = command.getDirectory();
 				
-				final JTextArea taCommand = createFixedTextArea(commandLine, "Monospaced");
+				String commandMessage;
+				if (directory == null ){
+					commandMessage = commandLine;
+				} else {
+					commandMessage = String.format("Base directory: %s\n%s", directory.getAbsolutePath(), commandLine);
+				}
+				
+				final JTextArea taCommand = createFixedTextArea(commandMessage, "Monospaced");
 				taCommand.setColumns(80);
 				taCommand.setBorder(
 					BorderFactory.createCompoundBorder(
@@ -119,4 +130,5 @@ public class ADOPSErrorPanel extends JPanel {
 	public JButton getBtnOk() {
 		return btnOk;
 	}
+	
 }
