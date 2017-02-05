@@ -158,11 +158,13 @@
 		<maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
 		<maven-resources-plugin.version>2.7</maven-resources-plugin.version>
 		<maven-dependency-plugin.version>2.1</maven-dependency-plugin.version>
+		<maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
 		
 		<!-- AIBench configuration -->
 		<aibench.lib.artifactIds>javatar,aibench-aibench,jhall,log4j</aibench.lib.artifactIds>
 		<aibench.plugins.artifactIds>aibench-core,aibench-workbench</aibench.plugins.artifactIds>
 		<globalResourcesDirectory>src/main/global-resources</globalResourcesDirectory>
+		<aibehch.dist.directory>${project.build.directory}/ADOPS</aibehch.dist.directory>
 		<aibench.version>2.8.0</aibench.version>
 		
 		<!-- license-maven-plugin configuration -->
@@ -252,7 +254,7 @@
 
 	<build>
 		<directory>${project.basedir}/target</directory>
-		<outputDirectory>${project.build.directory}/dist/plugins_bin/${project.artifactId}</outputDirectory>
+		<outputDirectory>${project.build.directory}/ADOPS/plugins_bin/${project.artifactId}</outputDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -268,7 +270,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/dist</outputDirectory>
+							<outputDirectory>${aibehch.dist.directory}</outputDirectory>
 							<resources>
 								<resource>
 									<directory>${globalResourcesDirectory}</directory>
@@ -293,7 +295,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/dist/lib</outputDirectory>
+							<outputDirectory>${aibehch.dist.directory}/lib</outputDirectory>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
@@ -310,7 +312,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/dist/plugins_bin</outputDirectory>
+							<outputDirectory>${aibehch.dist.directory}/plugins_bin</outputDirectory>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
@@ -333,6 +335,30 @@
 							<overWriteIfNewer>true</overWriteIfNewer>
 							<excludeArtifactIds>${aibench.plugins.artifactIds},${aibench.lib.artifactIds}</excludeArtifactIds>
 							<includeScope>runtime</includeScope>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>${maven-assembly-plugin.version}</version>
+				<configuration>
+					<descriptors>
+						<descriptor>${project.basedir}/src/main/assembly/zip-dist.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>zip-dist-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<finalName>ADOPS_v${project.version}</finalName>
 						</configuration>
 					</execution>
 				</executions>

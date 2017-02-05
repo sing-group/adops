@@ -21,5 +21,6 @@
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 # #L%
 ###
+cd "$(dirname "$0")"
 
 java -Xdebug -agentlib:jdwp=transport=dt_socket,server=y,address=8000 -jar ./lib/aibench-aibench-${aibench.version}.jar
