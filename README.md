@@ -26,8 +26,8 @@ You can find the installation files and instructions of this programs in their r
   * [PAML Home Page](http://abacus.gene.ucl.ac.uk/software/paml.html) (includes CodeML)
 
 ### 1. Download
-Download your ADOPS copy from [here](http://static.sing-group.org/ADOPS/ADOPS_v0.5.0.zip) (8.0MB) and go to step 2.
-Or you can download [this](http://static.sing-group.org/ADOPS/BDBM_v0.19.1-ADOPS_v0.4.16.zip) Ubuntu 12.04 (32 bits) Virtual Machine (~1GB) with a copy of ADOPS, T-Coffee, MrBayes and PAML already installed and configured. Run the virtual machine (you will need [Virtual Box](https://www.virtualbox.org/)) and go to step 4.
+Download your ADOPS copy from [here](http://static.sing-group.org/ADOPS/ADOPS_v0.6.0.zip) (8.0MB) and go to step 2.
+Or you can download [this](http://static.sing-group.org/ADOPS/BDBM_v0.19.2-ADOPS_v0.6.0.zip) Ubuntu 12.04 (32 bits) Virtual Machine (~1GB) with a copy of ADOPS, T-Coffee, MrBayes and PAML already installed and configured. Run the virtual machine (you will need [Virtual Box](https://www.virtualbox.org/)) and go to step 4.
 
 If you have some trouble installing the ADOPS VM, you can check our [ADOPS VM - Quick Installation Guide](http://static.sing-group.org/ADOPS/ADOPS%20VM%20-%20Quick%20Installation%20Guide.pdf).
 
@@ -89,8 +89,8 @@ In case you are under a Windows environment you have to execute the `run.bat` fi
 
 If you want to test the application you can download this example files:
 
-  * [Example fasta file](http://sing.ei.uvigo.es/ADOPS2/input.fasta)
-  * [Coffea fasta file](http://sing.ei.uvigo.es/ADOPS2/Coffea.fasta)<sup>2</sup>
+  * [Example fasta file](http://static.sing-group.org/ADOPS/input.fasta)
+  * [Coffea fasta file](http://static.sing-group.org/ADOPS/Coffea.fasta)<sup>2</sup>
 
 ## Citing ADOPS
 If you use ADOPS, please, cite this work:
