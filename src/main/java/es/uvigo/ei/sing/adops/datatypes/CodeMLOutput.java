@@ -29,11 +29,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import es.uvigo.ei.sing.adops.datatypes.AlignmentConfidences.Confidence;
-import es.uvigo.ei.sing.alter.parser.ParseException;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Clipboard;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
+import es.uvigo.ei.sing.adops.datatypes.AlignmentConfidences.Confidence;
+import es.uvigo.ei.sing.adops.datatypes.fasta.Fasta;
 
 @Datatype(structure = Structure.COMPLEX)
 public class CodeMLOutput extends AbstractOperationOutput {
@@ -132,14 +132,14 @@ public class CodeMLOutput extends AbstractOperationOutput {
 		};
 	}
 
-	public AlignmentConfidences getConfidences(Map<String, String> sequences) throws ParseException, IOException {
+	public AlignmentConfidences getConfidences(Fasta sequences) throws IOException {
 		return this.getConfidences(sequences, this.getSummaryFile());
 	}
 
-	public AlignmentConfidences getConfidences(Map<String, String> sequences, File summaryFile) throws ParseException, IOException {
+	public AlignmentConfidences getConfidences(Fasta sequences, File summaryFile) throws IOException {
 		final AlignmentConfidences confidences = new AlignmentConfidences(sequences);
 
-		final Collection<String> seqs = sequences.values();
+		final Collection<String> seqs = sequences.getSequencesChain();
 		final Map<Integer, Integer> movedIndexes = new HashMap<>();
 		final int seqLength = seqs.iterator().next().length();
 

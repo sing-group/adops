@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +40,7 @@ import java.util.Observer;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -50,6 +52,7 @@ import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.JXTaskPaneContainer;
 
 import es.uvigo.ei.aibench.workbench.Workbench;
+import es.uvigo.ei.aibench.workbench.inputgui.Common;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.datatypes.Project;
 import es.uvigo.ei.sing.adops.datatypes.ProjectExperiment;
@@ -174,7 +177,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						new TextFileDialog(project.getFastaFile(), Workbench.getInstance().getMainFrame(), "Fasta File", true).setVisible(true);
+						new TextFileDialog(project.getRenamedFastaFile(), Workbench.getInstance().getMainFrame(), "Fasta File", true).setVisible(true);
 					}
 				}
 			)
@@ -191,6 +194,52 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 				}
 			)
 		);
+
+		tpProject.add(
+			new JButton(
+				new AbstractAction("Add Sequences") {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						final int confirmContinue = JOptionPane.showConfirmDialog(ProjectView.this,
+							"Your original Fasta file will be modified if you add more sequences. " +
+							"Do you want to continue?",
+							"Add Sequences",
+							JOptionPane.YES_NO_OPTION,
+							JOptionPane.WARNING_MESSAGE
+						);
+						
+						if (confirmContinue == JOptionPane.YES_OPTION) {
+							final JFileChooser fc = Common.SINGLE_FILE_CHOOSER;
+							
+							if (fc.showOpenDialog(ProjectView.this) == JFileChooser.APPROVE_OPTION) {
+								final File fastaFile = fc.getSelectedFile();
+								
+								try {
+									ProjectView.this.project.addSequences(fastaFile);
+									JOptionPane.showMessageDialog(
+										ProjectView.this,
+										"<html>Sequences added to the project. New sequences will be automatically<br/>"
+										+ "used in new experiments. Existing experiments were not changed.</html>",
+										"Add Sequences",
+										JOptionPane.INFORMATION_MESSAGE
+									);
+								} catch (Exception ex) {
+									JOptionPane.showMessageDialog(
+										ProjectView.this,
+										"Unexpected error: " + ex.getMessage(),
+										"Add Sequences Error",
+										JOptionPane.ERROR_MESSAGE
+									);
+								}
+							}
+						}
+					}
+				}
+			)
+		);
+		
 		tpProject.add(
 			new JButton(
 				new AbstractAction("Check Programs") {

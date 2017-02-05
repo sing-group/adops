@@ -53,7 +53,7 @@ public class SelectSequenceCheckboxDialog extends JDialog {
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setMinimumSize(new Dimension(360, 240));
 
-		final List<String> names = experiment.listSequenceName();
+		final List<String> names = experiment.listSequenceNames();
 		final List<String> selectedNames = experiment.listSelectedSequenceName();
 
 		this.selectedIndexes = new TreeSet<>();

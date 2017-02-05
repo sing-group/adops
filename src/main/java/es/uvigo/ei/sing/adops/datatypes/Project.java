@@ -21,14 +21,17 @@
  */
 package es.uvigo.ei.sing.adops.datatypes;
 
-import java.io.BufferedReader;
+import static es.uvigo.ei.sing.adops.util.FastaUtils.loadAndCheckSequences;
+import static es.uvigo.ei.sing.adops.util.FastaUtils.writeSequences;
+
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.io.FileUtils;
 
@@ -46,10 +49,11 @@ import es.uvigo.ei.sing.adops.configuration.Configuration;
 public class Project extends Observable implements HasConfiguration {
 	private static final String CONFIGURATION_FILE = "project.conf";
 	private static final String FILE_NAMES = "names.txt";
+	private static final String FILE_ORIGINAL_FASTA = "original.fasta";
 	private static final String FILE_FASTA = "input.fasta";
 
 	private final File folder, originalFastaFile;
-	private File fastaFile, namesFile;
+	private File renamedFastaFile, namesFile;
 	private final Configuration configuration;
 	private final File propertiesFile;
 
@@ -83,7 +87,7 @@ public class Project extends Observable implements HasConfiguration {
 			throw new IllegalArgumentException("Project path can't contain white spaces. T-Coffee won't work.");
 
 		if (checkFasta)
-			Project.checkFastaFile(originalFastaFile);
+			checkFastaFile(originalFastaFile);
 
 		this.folder = folder;
 		this.deleted = false;
@@ -102,14 +106,14 @@ public class Project extends Observable implements HasConfiguration {
 			this.propertiesFile
 		);
 
-		this.fastaFile = new File(folder, Project.FILE_FASTA);
+		this.renamedFastaFile = new File(folder, Project.FILE_FASTA);
 		this.namesFile = new File(folder, Project.FILE_NAMES);
 
 		if (absoluteFasta) {
 			this.originalFastaFile = originalFastaFile;
-			this.configuration.setFastaFile(fastaFile.getAbsolutePath());
+			this.configuration.setFastaFile(renamedFastaFile.getAbsolutePath());
 		} else {
-			this.originalFastaFile = new File(folder, Project.FILE_FASTA);
+			this.originalFastaFile = new File(folder, Project.FILE_ORIGINAL_FASTA);
 			FileUtils.copyFile(originalFastaFile, this.originalFastaFile);
 		}
 
@@ -117,7 +121,7 @@ public class Project extends Observable implements HasConfiguration {
 
 		this.configuration.storeProperties(this.propertiesFile);
 
-		this.experiments = new ArrayList<ProjectExperiment>();
+		this.experiments = new ArrayList<>();
 	}
 
 	public Project(File folder) throws IOException, IllegalArgumentException {
@@ -147,14 +151,14 @@ public class Project extends Observable implements HasConfiguration {
 			);
 		}
 
-		this.fastaFile = this.loadFastaFile();
-		if (!this.fastaFile.exists() || !this.fastaFile.canRead()) {
+		this.renamedFastaFile = this.loadRenamedFastaFile();
+		if (!this.renamedFastaFile.exists() || !this.renamedFastaFile.canRead()) {
 			throw new IllegalArgumentException(
-				"FASTA file (" + fastaFile.getAbsolutePath() + ") does not exist or can not be read"
+				"FASTA file (" + renamedFastaFile.getAbsolutePath() + ") does not exist or can not be read"
 			);
 		}
 
-		this.fastaFile = new File(folder, Project.FILE_FASTA);
+		this.renamedFastaFile = new File(folder, Project.FILE_FASTA);
 		this.namesFile = this.loadNamesFile();
 		if (!this.namesFile.exists() || !this.namesFile.canRead()) {
 			throw new IllegalArgumentException(
@@ -173,71 +177,56 @@ public class Project extends Observable implements HasConfiguration {
 			}
 		}
 	}
-
-	private static void checkFastaFile(File fastaFile) throws IllegalArgumentException {
-		BufferedReader br = null;
-
+	
+	public void addSequences(File fastaFile) throws IllegalArgumentException {
 		try {
-			br = new BufferedReader(new FileReader(fastaFile));
-
-			String line = null;
-			while ((line = br.readLine()) != null && !line.startsWith(">"))
-				;
-
-			String sequenceName = line.substring(1);
-			String sequence = "";
-			while (true) {
-				line = br.readLine();
-
-				if (line == null || line.startsWith(">")) {
-					if (sequence.isEmpty()) {
-						throw new IllegalArgumentException("Empty sequence: " + sequenceName);
-					} else if (sequence.length() % 3 != 0) {
-						throw new IllegalArgumentException("Sequence length must be multiple of 3: " + sequenceName);
-					}
-
-					if (line == null) {
-						break;
-					} else {
-						sequenceName = line.substring(1);
-						sequence = "";
-					}
-				} else {
-					sequence += line.replaceAll("\\s", "");
+			final int numSequences = this.listSequenceNames().size();
+			
+			writeSequences(this.originalFastaFile, loadAndCheckSequences(fastaFile), true);
+			
+			this.createNamesFile();
+			
+			final String inputSequences = IntStream.rangeClosed(1, numSequences)
+				.mapToObj(Integer::toString)
+			.collect(Collectors.joining(" "));
+			
+			for (ProjectExperiment experiment : this.getExperiments()) {
+				final Configuration configuration = experiment.getConfiguration();
+				
+				if (configuration.getInputSequences().isEmpty()) {
+					configuration.setInputSequences(inputSequences);
 				}
 			}
-
-		} catch (IOException ioe) {
-			throw new IllegalArgumentException("Error reading input Fasta file: " + fastaFile.getAbsolutePath(), ioe);
-		} finally {
-			if (br != null)
-				try {
-					br.close();
-				} catch (IOException ioe) {}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IllegalArgumentException(String.format("File %s is not a valid Fasta file", fastaFile.getAbsolutePath()), e);
 		}
+		
 	}
 
-	private void createNamesFile() {
-		try {
-			List<String> originalLines = FileUtils.readLines(this.originalFastaFile);
-			List<String> fastaLines = new ArrayList<String>(), namesLines = new ArrayList<String>();
+	private static void checkFastaFile(File fastaFile) throws IllegalArgumentException {
+		loadAndCheckSequences(fastaFile);
+	}
 
-			int i = 1;
-			for (String l : originalLines) {
-				if (l.startsWith(">")) {
-					fastaLines.add(">C" + i);
-					namesLines.add(l.substring(1) + " - C" + i);
-					++i;
-				} else {
-					fastaLines.add(l);
-				}
+	private void createNamesFile() throws IOException {
+		final List<String> originalLines = FileUtils.readLines(this.originalFastaFile);
+		final List<String> fastaLines = new ArrayList<>();
+		final List<String> namesLines = new ArrayList<>();
+
+		int i = 1;
+		for (String l : originalLines) {
+			if (l.startsWith(">")) {
+				fastaLines.add(">C" + i);
+				namesLines.add(l.substring(1) + " - C" + i);
+				++i;
+			} else {
+				fastaLines.add(l);
 			}
-			FileUtils.writeLines(this.namesFile, namesLines);
-			FileUtils.writeLines(this.fastaFile, fastaLines);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		
+		FileUtils.writeLines(this.namesFile, namesLines);
+		FileUtils.writeLines(this.renamedFastaFile, fastaLines);
 	}
 
 	private File loadOriginalFastaFile() {
@@ -250,7 +239,7 @@ public class Project extends Observable implements HasConfiguration {
 		}
 	}
 
-	private File loadFastaFile() {
+	private File loadRenamedFastaFile() {
 		final String fastaFile = this.configuration.getFastaFile();
 
 		if (fastaFile == null || fastaFile.trim().isEmpty()) {
@@ -268,6 +257,26 @@ public class Project extends Observable implements HasConfiguration {
 		} else {
 			return new File(namesFile);
 		}
+	}
+
+	public List<String> listSequenceNames() {
+		final List<String> names = new ArrayList<>();
+
+		try {
+			final List<String> lines = FileUtils.readLines(this.getNamesFile());
+
+			for (String line : lines) {
+				final String[] split = line.split(" - ");
+
+				if (split.length == 2) {
+					names.add(split[0].trim());
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Unexpected error reading names file", e);
+		}
+
+		return names;
 	}
 
 	public String getName() {
@@ -303,8 +312,8 @@ public class Project extends Observable implements HasConfiguration {
 		this.notifyObservers(experiment);
 	}
 
-	public File getFastaFile() {
-		return this.fastaFile;
+	public File getRenamedFastaFile() {
+		return this.renamedFastaFile;
 	}
 
 	public File getNamesFile() {

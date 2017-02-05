@@ -23,19 +23,15 @@ package es.uvigo.ei.sing.adops.datatypes;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
-import es.uvigo.ei.sing.adops.util.FastaUtils;
-import es.uvigo.ei.sing.alter.parser.ParseException;
-import es.uvigo.ei.sing.alter.types.FastaSequence;
-import es.uvigo.ei.sing.alter.types.Sequence;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Clipboard;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
+import es.uvigo.ei.sing.adops.datatypes.fasta.Fasta;
+import es.uvigo.ei.sing.adops.util.FastaUtils;
 
 @Datatype(structure = Structure.COMPLEX, namingMethod = "getName")
 public class ExperimentOutput extends AbstractOperationOutput {
@@ -276,32 +272,14 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_TREE);
 	}
 
-	public AlignmentConfidences loadConfidences() throws ParseException, IOException {
+	public AlignmentConfidences loadConfidences() throws IOException {
 		if (
 			this.getRenamedAlignedFastaFile().exists()
 				&& this.getCodeMLSummaryFile().exists()
 		) {
-			final Map<String, String> sequences = new LinkedHashMap<>();
-
-			final List<FastaSequence> fastaSequences = FastaUtils.listFastaSequences(
-				this.getRenamedAlignedProteinFastaFile(),
-				ExperimentOutput.class.getName()
+			final Fasta sequences = FastaUtils.loadSequences(
+				this.getRenamedAlignedProteinFastaFile(), false
 			);
-
-			for (FastaSequence seq : fastaSequences) {
-				if (seq instanceof FastaSequence) {
-					FastaSequence sequence = (FastaSequence) seq;
-					if (sequence.getDesc().isEmpty()) {
-						sequences.put(sequence.getId(), sequence.getData());
-					} else {
-						sequences.put(sequence.getId() + " " + sequence.getDesc(), sequence.getData());
-					}
-				} else {
-					Sequence sequence = (Sequence) seq;
-					sequences.put(sequence.getId() + " ", sequence.getData());
-
-				}
-			}
 
 			return this.getCodeMLOutput().getConfidences(sequences, this.getCodeMLSummaryFile());
 		} else {

@@ -45,14 +45,13 @@ import javax.swing.text.DefaultCaret;
 
 import org.forester.io.parsers.util.PhylogenyParserException;
 
+import es.uvigo.ei.aibench.core.Core;
+import es.uvigo.ei.aibench.workbench.Workbench;
 import es.uvigo.ei.sing.adops.datatypes.AlignmentConfidences;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
 import es.uvigo.ei.sing.adops.datatypes.ExperimentOutput;
 import es.uvigo.ei.sing.adops.datatypes.ProjectExperiment;
 import es.uvigo.ei.sing.adops.views.utils.ViewUtils;
-import es.uvigo.ei.sing.alter.parser.ParseException;
-import es.uvigo.ei.aibench.core.Core;
-import es.uvigo.ei.aibench.workbench.Workbench;
 
 public class ExperimentView extends JPanel implements Observer {
 	private static final String PSS_TAB = "PSS";
@@ -307,8 +306,6 @@ public class ExperimentView extends JPanel implements Observer {
 					this.tabResults.addTab(ExperimentView.PSS_TAB, this.alignmentTextViewer);
 				}
 			}
-		} catch (ParseException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

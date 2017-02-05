@@ -28,19 +28,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import es.uvigo.ei.sing.adops.datatypes.fasta.Fasta;
+
 public class AlignmentConfidences {
-	private final Map<String, String> sequences;
+	private final Fasta fasta;
 	private final Map<String, Map<Integer, Confidence>> models;
 	private final Map<Integer, Integer> movedIndexes;
 
-	public AlignmentConfidences(Map<String, String> sequences) {
-		this.sequences = sequences;
+	public AlignmentConfidences(Fasta sequences) {
+		this.fasta = sequences;
 		this.models = new TreeMap<>();
 		this.movedIndexes = new HashMap<>();
 
 		int maxSeqLength = Integer.MIN_VALUE;
 
-		for (String sequence : sequences.values()) {
+		for (String sequence : sequences.getSequencesChain()) {
 			maxSeqLength = Math.max(maxSeqLength, sequence.length());
 		}
 
@@ -48,7 +50,7 @@ public class AlignmentConfidences {
 		for (int i = 0; i < maxSeqLength; i++) {
 			boolean hasSpace = false;
 
-			for (String sequence : sequences.values()) {
+			for (String sequence : sequences.getSequencesChain()) {
 				if (sequence.length() <= i || sequence.charAt(i) == '-') {
 					hasSpace = true;
 					break;
@@ -66,11 +68,11 @@ public class AlignmentConfidences {
 	}
 
 	public int sequenceLength() {
-		return this.sequences.values().iterator().next().length();
+		return this.fasta.getSequencesChain().iterator().next().length();
 	}
 
-	public Map<String, String> getSequences() {
-		return Collections.unmodifiableMap(sequences);
+	public Fasta getFasta() {
+		return this.fasta;
 	}
 
 	public void addModel(String id, Map<Integer, Confidence> model) {

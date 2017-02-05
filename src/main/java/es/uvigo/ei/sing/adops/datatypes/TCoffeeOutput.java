@@ -83,6 +83,14 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 		}
 	}
 
+	public int getFirstLevelCounter() {
+		return this.firstLevelCounter;
+	}
+
+	public int getSecondLevelCounter() {
+		return this.secondLevelCounter;
+	}
+
 	@Override
 	protected Set<File> getIgnoredFiles() {
 		return new HashSet<>(
@@ -98,35 +106,35 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 	}
 
 	public File getCurrentFastaFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix());
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix());
 	}
 
 	public File getCurrentHtmlFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".html");
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix() + ".html");
 	}
 
 	public File getCurrentScoreFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".score_ascii");
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix() + ".score_ascii");
 	}
 
 	public File getCurrentAlnFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".aln");
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix() + ".aln");
 	}
 
 	public File getCurrentBSAlnFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + "_bs.aln");
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix() + "_bs.aln");
 	}
 
 	public File getCurrentTmpAlnFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".tmp.aln");
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix() + ".tmp.aln");
 	}
 
 	public File getCurrentIpiIFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".ipi_i");
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix() + ".ipi_i");
 	}
 	
 	public File getCurrentIpiBSFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getCurrentFastaSuffix() + ".ipi_bs");
+		return new File(this.outputFolder, "input" + this.getCurrentFastaSuffix() + ".ipi_bs");
 	}
 
 	public File getCurrentDivFile() {
@@ -186,7 +194,7 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 	}
 
 	public String getResultsPrefix() {
-		return this.getProteinFile().getName() + "." + this.alignMethod.getName();
+		return "output_" + this.alignMethod.getName();
 	}
 
 	public File getOutputFile() {
@@ -198,47 +206,39 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 	}
 
 	public File getProteinFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getProteinSuffix());
-	}
-
-	public File getFinalClustalFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + ".clus");
-	}
-
-	public File getFinalOutputFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + ".fasta");
+		return new File(this.outputFolder, "input" + this.getProteinSuffix());
 	}
 
 	public File getInitialFastaFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix());
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix());
 	}
 
 	public File getInitialAlnFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".aln");
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix() + ".aln");
 	}
 
 	public File getInitialBSAlnFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + "_bs.aln");
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix() + "_bs.aln");
 	}
 
 	public File getInitialDivFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".aln.div");
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix() + ".aln.div");
 	}
 
 	public File getInitialScoreFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".score_ascii");
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix() + ".score_ascii");
 	}
 
 	public File getInitialHtmlFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".html");
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix() + ".html");
 	}
 
 	public File getInitialIpiIFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".ipi_i.fasta");
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix() + ".ipi_i.fasta");
 	}
 	
 	public File getInitialIpiBSFile() {
-		return new File(this.outputFolder, this.inputFile.getName() + this.getInitialFastaSuffix() + ".ipi_bs.fasta");
+		return new File(this.outputFolder, "input" + this.getInitialFastaSuffix() + ".ipi_bs.fasta");
 	}
 
 	public File getReducedSetAlnFile() {
@@ -257,14 +257,6 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 		return new File(this.outputFolder, this.getResultsPrefix() + "_rs.score_ascii");
 	}
 
-	public File getFinalRealingmentAlnFile() {
-		return new File(this.outputFolder, this.getResultsPrefix() + "_rsa_1.aln");
-	}
-
-	public File getFinalRealingmentHtmlFile() {
-		return new File(this.outputFolder, this.getResultsPrefix() + "_rsa_1.html");
-	}
-
 	public File getRenamedFinalRealingmentAlnFile() {
 		return new File(this.outputFolder, this.getResultsPrefix() + "_r.aln");
 	}
@@ -275,14 +267,6 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 
 	public File getRenamedFinalRealingmentScoreFile() {
 		return new File(this.outputFolder, this.getResultsPrefix() + "_r.score_ascii");
-	}
-
-	public File getFinalUsedAlnFile() {
-		return new File(this.outputFolder, this.getResultsPrefix() + "_final.aln");
-	}
-
-	public File getFinalScoreFile() {
-		return new File(this.outputFolder, this.getResultsPrefix() + "_final.score_ascii");
 	}
 
 	public File getRenamedFinalIpiIFile() {
@@ -297,12 +281,28 @@ public class TCoffeeOutput extends AbstractOperationOutput {
 		return new File(this.outputFolder, this.getResultsPrefix() + "_final.ipi_bs");
 	}
 
-	public int getFirstLevelCounter() {
-		return this.firstLevelCounter;
+	public File getFinalUsedAlnFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + "_final.aln");
 	}
 
-	public int getSecondLevelCounter() {
-		return this.secondLevelCounter;
+	public File getFinalScoreFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + "_final.score_ascii");
+	}
+
+	public File getFinalRealingmentAlnFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + "_rsa_1.aln");
+	}
+
+	public File getFinalRealingmentHtmlFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + "_rsa_1.html");
+	}
+
+	public File getFinalClustalFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + ".clus");
+	}
+
+	public File getFinalOutputFile() {
+		return new File(this.outputFolder, this.getResultsPrefix() + ".fasta");
 	}
 
 	public void checkProteinFile() throws FileFormatException {

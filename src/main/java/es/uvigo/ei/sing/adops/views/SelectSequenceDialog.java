@@ -101,7 +101,7 @@ public class SelectSequenceDialog extends JDialog {
 
 		this.experiment = experiment;
 
-		final List<String> names = experiment.listSequenceName();
+		final List<String> names = experiment.listSequenceNames();
 		this.selectedNames = new Vector<>(experiment.listSelectedSequenceName());
 		this.unselectedNames = new Vector<>(names);
 		this.unselectedNames.removeAll(selectedNames);
@@ -270,7 +270,7 @@ public class SelectSequenceDialog extends JDialog {
 					unselectedNames.clear();
 
 					selectedNames.addAll(experiment.listSelectedSequenceName());
-					unselectedNames.addAll(experiment.listSequenceName());
+					unselectedNames.addAll(experiment.listSequenceNames());
 					unselectedNames.removeAll(selectedNames);
 
 					repaintLists();
@@ -305,7 +305,7 @@ public class SelectSequenceDialog extends JDialog {
 	}
 
 	public SortedSet<Integer> getSelectedIndexes() {
-		final List<String> names = this.experiment.listSequenceName();
+		final List<String> names = this.experiment.listSequenceNames();
 		final SortedSet<Integer> selectedIndex = new TreeSet<>();
 
 		for (String selected : this.selectedNames) {
@@ -316,7 +316,7 @@ public class SelectSequenceDialog extends JDialog {
 	}
 
 	public String getSelectedIndexesAsString() {
-		final List<String> names = this.experiment.listSequenceName();
+		final List<String> names = this.experiment.listSequenceNames();
 		if (this.selectedNames.size() == names.size()) {
 			return "";
 		} else {

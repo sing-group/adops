@@ -32,10 +32,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -61,6 +64,8 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import es.uvigo.ei.sing.adops.datatypes.AlignmentConfidences;
 import es.uvigo.ei.sing.adops.datatypes.AlignmentConfidences.Confidence;
+import es.uvigo.ei.sing.adops.datatypes.fasta.Fasta;
+import es.uvigo.ei.sing.adops.datatypes.fasta.FastaSequence;
 
 public class AlignmentTextViewer extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -337,11 +342,11 @@ public class AlignmentTextViewer extends JPanel {
 							sb.append("</span>\n");
 						}
 
-						for (Map.Entry<String, String> sequence : this.confidences.getSequences().entrySet()) {
-							sb.append(strip(sequence.getKey(), labelLength));
+						for (FastaSequence sequence : this.confidences.getFasta().getSequences()) {
+							sb.append(strip(sequence.getIdAndDescription(), labelLength));
 							tab(sb, labelTab);
 
-							final String seqString = sequence.getValue();
+							final String seqString = sequence.getSequence();
 
 							int localOffset = offset;
 							for (int blockIndex = 0; blockIndex < blocksPerLine; blockIndex++) {
@@ -962,34 +967,41 @@ public class AlignmentTextViewer extends JPanel {
 			new Runnable() {
 				@Override
 				public void run() {
-					final Map<String, String> sequences = new TreeMap<String, String>();
-					sequences.put("SEQUENCE1", "AGSTTREGGKMMNTTACAGSTTRERGKLMN--TTACCAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA");
-					sequences.put("SEQUENCE2", "AGSTTREGGKMMNTTACAGSTTRERGKLMN--TTACCAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA");
-					sequences.put("SEQUENCE3", "AGSTTREGGKMMNTTACAGSTTRERGKLMN--TTACCAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA");
-					sequences.put("SEQUENCE4", "AGSTTREGGKMMNTTACAGSTTRERGKLMN--TTACCAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA");
-					sequences.put("SEQUENCE5", "AGSTTREGGKMMNTTACAGSTTRERGKLMN--TTACCAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA");
-					sequences.put("SEQUENCE6", "AGSTTREGGKMMNTTACAGSTTRERGKLMNCCTTA-CAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA");
+					final List<FastaSequence> sequences = new ArrayList<>();
+					final String firstSequence = "AGSTTREGGKMMNTTACAGSTTRERGKLMN--TTACCAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA";
+					sequences.add(new FastaSequence("SEQUENCE1", firstSequence));
+					sequences.add(new FastaSequence("SEQUENCE2", firstSequence));
+					sequences.add(new FastaSequence("SEQUENCE3", firstSequence));
+					sequences.add(new FastaSequence("SEQUENCE4", firstSequence));
+					sequences.add(new FastaSequence("SEQUENCE5", firstSequence));
+					sequences.add(new FastaSequence("SEQUENCE6", "AGSTTREGGKMMNTTACAGSTTRERGKLMNCCTTA-CAGSTTREGGRLMNTTAAGSTTREGGKMMNTTACAGSTTREGGKLMNTTACAGSTTREGGRLMNTTA"));
 
-					final Map<Integer, Confidence> model = new TreeMap<Integer, AlignmentConfidences.Confidence>();
+					final Map<Integer, Confidence> model = new TreeMap<>();
 					model.put(4, new Confidence(0.99d, 0.99d));
 					model.put(14, new Confidence(0.99d, 0.99d));
 					model.put(8, new Confidence(0.99d, 0.92d));
 					model.put(12, new Confidence(0.92d, 0.99d));
 					model.put(16, new Confidence(0.92d, 0.92d));
 
-					final Map<Integer, Confidence> model2 = new TreeMap<Integer, AlignmentConfidences.Confidence>();
+					final Map<Integer, Confidence> model2 = new TreeMap<>();
 					model2.put(7, new Confidence(0.99d, 0.99d));
 					model2.put(9, new Confidence(0.99d, 0.99d));
 					model2.put(22, new Confidence(0.99d, 0.92d));
 					model2.put(12, new Confidence(0.92d, 0.99d));
 					model2.put(43, new Confidence(0.92d, 0.92d));
 
-					final AlignmentConfidences alignmentConfidences = new AlignmentConfidences(sequences);
+					final int[] scores = new int[firstSequence.length()];
+					final Random random = new Random(scores.length);
+					for (int i = 0; i < scores.length; i++) {
+						scores[i] = random.nextInt(10);
+					}
+					
+					final AlignmentConfidences alignmentConfidences = new AlignmentConfidences(new Fasta(sequences));
 					alignmentConfidences.addModel("Model 2", model);
 					alignmentConfidences.addModel("Model 8", model2);
 
 					final JFrame frame = new JFrame("Align Viewer");
-					frame.setContentPane(new AlignmentTextViewer(alignmentConfidences/* , "Model 2" */));
+					frame.setContentPane(new AlignmentTextViewer(alignmentConfidences, scores));
 
 					frame.setSize(800, 600);
 					frame.setLocationRelativeTo(null);

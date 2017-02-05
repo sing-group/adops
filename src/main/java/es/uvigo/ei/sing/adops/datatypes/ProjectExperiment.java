@@ -94,7 +94,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 			this.propertiesFile
 		);
 
-		this.fastaFile = new File(folder, this.project.getFastaFile().getName());
+		this.fastaFile = new File(folder, this.project.getRenamedFastaFile().getName());
 		this.namesFile = new File(folder, this.project.getNamesFile().getName());
 
 		if (this.getNotesFile().exists()) {
@@ -143,7 +143,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 			this.propertiesFile
 		);
 
-		this.fastaFile = new File(folder, this.project.getFastaFile().getName());
+		this.fastaFile = new File(folder, this.project.getRenamedFastaFile().getName());
 		this.namesFile = new File(folder, this.project.getNamesFile().getName());
 
 		if (this.getNotesFile().exists()) {
@@ -497,7 +497,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 
 	@Override
 	public File getSourceFastaFile() {
-		return project.getFastaFile();
+		return project.getRenamedFastaFile();
 	}
 
 	@Override
@@ -505,32 +505,15 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 		return project.getNamesFile();
 	}
 
-	public List<String> listSequenceName() {
-		final List<String> names = new ArrayList<String>();
-
-		try {
-			final List<String> lines = FileUtils.readLines(this.getSourceNamesFile());
-
-			for (String line : lines) {
-				final String[] split = line.split(" - ");
-
-				if (split.length == 2) {
-					names.add(split[0].trim());
-				}
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return names;
+	public List<String> listSequenceNames() {
+		return this.project.listSequenceNames();
 	}
 
 	public List<String> listSelectedSequenceName() {
 		final String sequences = this.configuration.getInputSequences();
 
 		if (sequences.trim().isEmpty()) {
-			return this.listSequenceName();
+			return this.listSequenceNames();
 		} else {
 			final Set<Integer> indexes = new HashSet<Integer>();
 			for (String index : sequences.split("\\s")) {
@@ -565,7 +548,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 
 		if (sequences.isEmpty()) {
 			try {
-				FileUtils.copyFile(this.project.getFastaFile(), this.fastaFile);
+				FileUtils.copyFile(this.project.getRenamedFastaFile(), this.fastaFile);
 				FileUtils.copyFile(this.project.getNamesFile(), this.namesFile);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -578,7 +561,7 @@ public class ProjectExperiment extends Observable implements Experiment, Observe
 				seqNumbers.add(Integer.parseInt(i));
 
 			try (
-				BufferedReader fastaBR = new BufferedReader(new FileReader(this.project.getFastaFile()));
+				BufferedReader fastaBR = new BufferedReader(new FileReader(this.project.getRenamedFastaFile()));
 				BufferedReader namesBR = new BufferedReader(new FileReader(this.project.getNamesFile()))
 			) {
 
