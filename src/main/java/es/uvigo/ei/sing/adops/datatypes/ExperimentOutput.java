@@ -24,12 +24,14 @@ package es.uvigo.ei.sing.adops.datatypes;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
 import es.uvigo.ei.aibench.core.datatypes.annotation.Clipboard;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Datatype;
 import es.uvigo.ei.aibench.core.datatypes.annotation.Structure;
+import es.uvigo.ei.sing.adops.datatypes.AlignmentConfidences.Confidence;
 import es.uvigo.ei.sing.adops.datatypes.fasta.Fasta;
 import es.uvigo.ei.sing.adops.util.FastaUtils;
 
@@ -45,6 +47,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 	private static final String FILE_OUTPUT_PSRF = "mrbayes.log.psrf";
 	private static final String FILE_OUTPUT_CODEML = "codeml.out";
 	private static final String FILE_OUTPUT_CODEML_SUMMARY = "codeml.sum";
+	public static final String FILE_OMEGAMAP_CODEML_SUMMARY = "omegamap.sum";
 
 	private TCoffeeOutput tCoffeeOutput;
 	private MrBayesOutput mrBayesOutput;
@@ -183,7 +186,16 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		}
 	}
 
-	@Clipboard(name = "Summary File", order = 9)
+	@Clipboard(name = "omegaMap Summary", order = 9)
+	public ConstantDatatype getOmegaMapSummaryFileData() {
+		if (this.getOmegaMapSummaryFile().exists()) {
+			return new ConstantDatatype("omegaMap Summary", this.getOmegaMapSummaryFile().getName());
+		} else {
+			return null;
+		}
+	}
+
+	@Clipboard(name = "Summary File", order = 10)
 	public ConstantDatatype getSummaryFileData() {
 		if (this.getSummaryFile().exists()) {
 			return new ConstantDatatype("Summary File", this.getSummaryFile().getName());
@@ -192,7 +204,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		}
 	}
 
-	@Clipboard(name = "T-Coffee Output", order = 10)
+	@Clipboard(name = "T-Coffee Output", order = 11)
 	public ConstantDatatype getTCoffeeOutputData() {
 		if (this.getTCoffeeOutput().isComplete()) {
 			return new ConstantDatatype("T-Coffee Output", "OK");
@@ -201,7 +213,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		}
 	}
 
-	@Clipboard(name = "MrBayes Output", order = 11)
+	@Clipboard(name = "MrBayes Output", order = 12)
 	public ConstantDatatype getMrBayesOutputData() {
 		if (this.getMrBayesOutput().isComplete()) {
 			return new ConstantDatatype("MrBayes Output", "OK");
@@ -210,7 +222,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		}
 	}
 
-	@Clipboard(name = "CodeML Output", order = 12)
+	@Clipboard(name = "CodeML Output", order = 13)
 	public ConstantDatatype getCodeMLOutputData() {
 		if (this.getCodeMLOutput().isComplete()) {
 			return new ConstantDatatype("CodeML Output", "OK");
@@ -234,6 +246,10 @@ public class ExperimentOutput extends AbstractOperationOutput {
 
 	public File getCodeMLSummaryFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_CODEML_SUMMARY);
+	}
+
+	public File getOmegaMapSummaryFile() {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OMEGAMAP_CODEML_SUMMARY);
 	}
 
 	public File getCodeMLOutputFile() {
@@ -275,13 +291,32 @@ public class ExperimentOutput extends AbstractOperationOutput {
 	public AlignmentConfidences loadConfidences() throws IOException {
 		if (
 			this.getRenamedAlignedFastaFile().exists()
-				&& this.getCodeMLSummaryFile().exists()
 		) {
 			final Fasta sequences = FastaUtils.loadSequences(
 				this.getRenamedAlignedProteinFastaFile(), false
 			);
 
-			return this.getCodeMLOutput().getConfidences(sequences, this.getCodeMLSummaryFile());
+			AlignmentConfidences confidences = new AlignmentConfidences(sequences);
+
+			if (this.getCodeMLSummaryFile().exists()) {
+				AlignmentConfidences codeMlConfidences = this.getCodeMLOutput().getConfidences(sequences, this.getCodeMLSummaryFile());
+				for (String model : codeMlConfidences.getModels()) {
+					confidences.addModel(model, codeMlConfidences.getModel(model));
+				}
+			}
+
+			if (this.getOmegaMapSummaryFile().exists()) {
+				Map<Integer, Confidence> omegaMapConfidences = OmegaMapOutput.getConfidences(sequences, this.getOmegaMapSummaryFile());
+				if (!omegaMapConfidences.isEmpty()) {
+					confidences.addModel("omegaMap", omegaMapConfidences);
+				}
+			}
+
+			if (confidences.getModels() == null || confidences.getModels().isEmpty()) {
+				return null;
+			} else {
+				return confidences;
+			}
 		} else {
 			return null;
 		}

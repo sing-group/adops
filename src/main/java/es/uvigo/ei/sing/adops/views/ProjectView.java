@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -31,6 +31,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,8 +57,12 @@ import org.jdesktop.swingx.JXTaskPaneContainer;
 import es.uvigo.ei.aibench.workbench.Workbench;
 import es.uvigo.ei.aibench.workbench.inputgui.Common;
 import es.uvigo.ei.sing.adops.datatypes.Experiment;
+import es.uvigo.ei.sing.adops.datatypes.ExperimentOutput;
+import es.uvigo.ei.sing.adops.datatypes.OmegaMapOutput;
 import es.uvigo.ei.sing.adops.datatypes.Project;
 import es.uvigo.ei.sing.adops.datatypes.ProjectExperiment;
+import es.uvigo.ei.sing.adops.datatypes.fasta.Fasta;
+import es.uvigo.ei.sing.adops.util.FastaUtils;
 import es.uvigo.ei.sing.adops.views.utils.ClipboardItemView;
 import es.uvigo.ei.sing.adops.views.utils.ViewUtils;
 
@@ -89,6 +96,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 	private final JButton btnCheckPrograms;
 	private final JButton btnClean;
 	private final JButton btnLaunch;
+	private final JButton btnImportOmegaMapSummary;
 
 	private final JXTaskPaneContainer taskPaneContainer;
 	private final JXTaskPane tpExperiment;
@@ -111,6 +119,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 		this.btnCopy = new JButton("Copy Experiment");
 		this.btnClean = new JButton("Clean Experiment");
 		this.btnLaunch = new JButton("Launch");
+		this.btnImportOmegaMapSummary = new JButton("Import omegaMap Summary");
 
 		this.taskPaneContainer = new JXTaskPaneContainer();
 		this.taskPaneContainer.setBackground(ProjectView.BACKGROUND_COLOR);
@@ -209,13 +218,13 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 							JOptionPane.YES_NO_OPTION,
 							JOptionPane.WARNING_MESSAGE
 						);
-						
+
 						if (confirmContinue == JOptionPane.YES_OPTION) {
 							final JFileChooser fc = Common.SINGLE_FILE_CHOOSER;
-							
+
 							if (fc.showOpenDialog(ProjectView.this) == JFileChooser.APPROVE_OPTION) {
 								final File fastaFile = fc.getSelectedFile();
-								
+
 								try {
 									ProjectView.this.project.addSequences(fastaFile);
 									JOptionPane.showMessageDialog(
@@ -239,7 +248,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 				}
 			)
 		);
-		
+
 		tpProject.add(
 			new JButton(
 				new AbstractAction("Check Programs") {
@@ -303,6 +312,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 		tpExperiment.add(this.btnCopy);
 		tpExperiment.add(this.btnClean);
 		tpExperiment.add(this.btnLaunch);
+		tpExperiment.add(this.btnImportOmegaMapSummary);
 
 		this.btnProps.setAction(
 			new ExperimentAction("Edit Properties") {
@@ -442,6 +452,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 						ProjectView.this.btnSequences.setEnabled(false);
 						ProjectView.this.btnCopy.setEnabled(false);
 						ProjectView.this.btnProps.setEnabled(false);
+						ProjectView.this.btnImportOmegaMapSummary.setEnabled(false);
 
 						experimentView.launchExecution(selection == JOptionPane.YES_OPTION);
 					}
@@ -449,7 +460,70 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			}
 		);
 
+		this.btnImportOmegaMapSummary.setAction(
+			new ExperimentAction("Import OmegaMap Summary") {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isEnabled() {
+					return this.hasExperiment() && !this.getExperiment().hasResult();
+				}
+
+				@Override
+				protected void actionPerformed(ActionEvent e, ProjectExperiment experiment) {
+					File destFolder = experiment.getFolder();
+					File destFile = new File(destFolder, ExperimentOutput.FILE_OMEGAMAP_CODEML_SUMMARY);
+
+					if(destFile.exists()) {
+						final int selection = JOptionPane.showConfirmDialog(
+								ProjectView.this,
+								"An omegaMap summary already exists. Dou you want to overwrite it?",
+								"Overwrite omegaMap summary",
+								JOptionPane.YES_NO_OPTION
+							);
+
+							if (selection == JOptionPane.NO_OPTION) {
+								return;
+							}
+					}
+
+					final JFileChooser fc = Common.SINGLE_FILE_CHOOSER;
+
+					if (fc.showOpenDialog(ProjectView.this) == JFileChooser.APPROVE_OPTION) {
+						final File sourceFile = fc.getSelectedFile();
+						try {
+							if(isOmegaMapSummaryCompatible(sourceFile, experiment)) {
+								Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+								final ExperimentView experimentView = ProjectView.this.experimentTab.get(experiment);
+								experimentView.update(experiment, new ExperimentOutput(experiment));
+							} else {
+								JOptionPane.showMessageDialog(ProjectView.this,
+								    "The selected omegaMap summary does not seem to be compatible with the current sequences file.",
+								    "Warning",
+								    JOptionPane.WARNING_MESSAGE
+								);
+							}
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		);
+
 		return tpExperiment;
+	}
+
+	private boolean isOmegaMapSummaryCompatible(File sourceFile, ProjectExperiment experiment) {
+		final Fasta sequences = FastaUtils.loadSequences(new ExperimentOutput(experiment).getRenamedAlignedFastaFile(), false);
+
+		try {
+			int maximumAminoacids = sequences.getSequences().get(0).getSequence().length() / 3;
+
+			return maximumAminoacids == OmegaMapOutput.getPositionsCount(sourceFile);
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	private void updateExperimentButtons() {
@@ -462,6 +536,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			ProjectView.this.btnCopy.setEnabled(false);
 			ProjectView.this.btnClean.setEnabled(false);
 			ProjectView.this.btnLaunch.setEnabled(false);
+			ProjectView.this.btnImportOmegaMapSummary.setEnabled(false);
 
 			ProjectView.this.btnProps.setText("Edit Properties");
 		} else if (experiment.hasResult()) {
@@ -471,6 +546,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			ProjectView.this.btnCopy.setEnabled(true);
 			ProjectView.this.btnClean.setEnabled(!experiment.isRunning());
 			ProjectView.this.btnLaunch.setEnabled(false);
+			ProjectView.this.btnImportOmegaMapSummary.setEnabled(true);
 
 			ProjectView.this.btnProps.setText("View Properties");
 		} else {
@@ -480,6 +556,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			ProjectView.this.btnCopy.setEnabled(true);
 			ProjectView.this.btnClean.setEnabled(!experiment.isClean());
 			ProjectView.this.btnLaunch.setEnabled(true);
+			ProjectView.this.btnImportOmegaMapSummary.setEnabled(true);
 
 			ProjectView.this.btnProps.setText("Edit Properties");
 		}

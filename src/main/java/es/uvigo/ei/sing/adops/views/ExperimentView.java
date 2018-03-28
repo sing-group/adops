@@ -56,6 +56,7 @@ import es.uvigo.ei.sing.adops.views.utils.ViewUtils;
 public class ExperimentView extends JPanel implements Observer {
 	private static final String PSS_TAB = "PSS";
 	private static final String SUMMARY_TAB = "Summary";
+	private static final String OMEGAMAP_SUMMARY_TAB = "omegaMap Summary";
 	private static final String CODEML_SUMMARY_TAB = "Codeml Summary";
 	private static final String CODEML_OUTPUT_TAB = "Codeml Output";
 	private static final String PSRF_TAB = "PSRF";
@@ -84,6 +85,7 @@ public class ExperimentView extends JPanel implements Observer {
 	private TreeView mbTreeView;
 	private TextFileViewer codeMLOutputView;
 	private TextFileViewer codeMLSummaryView;
+	private TextFileViewer omegaMapSummaryView;
 	private TextFileViewer outputView;
 
 	private AlignmentTextViewer alignmentTextViewer;
@@ -143,6 +145,10 @@ public class ExperimentView extends JPanel implements Observer {
 		if (this.codeMLSummaryView != null) {
 			this.tabResults.remove(this.codeMLSummaryView);
 			this.codeMLSummaryView = null;
+		}
+		if (this.omegaMapSummaryView != null) {
+			this.tabResults.remove(this.omegaMapSummaryView);
+			this.omegaMapSummaryView = null;
 		}
 		if (this.outputView != null) {
 			this.tabResults.remove(this.outputView);
@@ -239,6 +245,7 @@ public class ExperimentView extends JPanel implements Observer {
 		final File psrfFile = output.getPsrfFile();
 		final File codeMLOutputFile = output.getCodeMLOutputFile();
 		final File codeMLSummaryFile = output.getCodeMLSummaryFile();
+		final File omegaMapSummaryFile = output.getOmegaMapSummaryFile();
 		final File outputFile = output.getSummaryFile();
 
 		if (
@@ -291,6 +298,11 @@ public class ExperimentView extends JPanel implements Observer {
 		if (this.codeMLSummaryView == null && codeMLSummaryFile.exists()) {
 			this.codeMLSummaryView = new TextFileViewer(codeMLSummaryFile);
 			this.tabResults.addTab(ExperimentView.CODEML_SUMMARY_TAB, this.codeMLSummaryView);
+		}
+
+		if (this.omegaMapSummaryView == null && omegaMapSummaryFile.exists()) {
+			this.omegaMapSummaryView = new TextFileViewer(omegaMapSummaryFile);
+			this.tabResults.addTab(ExperimentView.OMEGAMAP_SUMMARY_TAB, this.omegaMapSummaryView);
 		}
 
 		if (this.outputView == null && outputFile.exists()) {
