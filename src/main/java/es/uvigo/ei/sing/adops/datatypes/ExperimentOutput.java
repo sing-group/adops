@@ -48,6 +48,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 	private static final String FILE_OUTPUT_CODEML = "codeml.out";
 	private static final String FILE_OUTPUT_CODEML_SUMMARY = "codeml.sum";
 	public static final String FILE_OMEGAMAP_CODEML_SUMMARY = "omegamap.sum";
+	public static final String FILE_OUTPUT_PHIPACK_LOG = "phipack.log";
 
 	private TCoffeeOutput tCoffeeOutput;
 	private MrBayesOutput mrBayesOutput;
@@ -204,7 +205,16 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		}
 	}
 
-	@Clipboard(name = "T-Coffee Output", order = 11)
+	@Clipboard(name = "PhiPack Log File", order = 11)
+	public ConstantDatatype getPhyPackLogFileFileData() {
+		if (this.getPhyPackLogFile().exists()) {
+			return new ConstantDatatype("PhiPack Log File", this.getPhyPackLogFile().getName());
+		} else {
+			return null;
+		}
+	}
+
+	@Clipboard(name = "T-Coffee Output", order = 12)
 	public ConstantDatatype getTCoffeeOutputData() {
 		if (this.getTCoffeeOutput().isComplete()) {
 			return new ConstantDatatype("T-Coffee Output", "OK");
@@ -213,7 +223,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		}
 	}
 
-	@Clipboard(name = "MrBayes Output", order = 12)
+	@Clipboard(name = "MrBayes Output", order = 13)
 	public ConstantDatatype getMrBayesOutputData() {
 		if (this.getMrBayesOutput().isComplete()) {
 			return new ConstantDatatype("MrBayes Output", "OK");
@@ -222,7 +232,7 @@ public class ExperimentOutput extends AbstractOperationOutput {
 		}
 	}
 
-	@Clipboard(name = "CodeML Output", order = 13)
+	@Clipboard(name = "CodeML Output", order = 14)
 	public ConstantDatatype getCodeMLOutputData() {
 		if (this.getCodeMLOutput().isComplete()) {
 			return new ConstantDatatype("CodeML Output", "OK");
@@ -232,12 +242,15 @@ public class ExperimentOutput extends AbstractOperationOutput {
 	}
 
 	public File getLogFile() {
-		// return this.logFile;
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_LOG);
 	}
 
 	public File getSummaryFile() {
 		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_SUMMARY);
+	}
+
+	public File getPhyPackLogFile() {
+		return new File(this.experiment.getFolder(), ExperimentOutput.FILE_OUTPUT_PHIPACK_LOG);
 	}
 
 	public File getPsrfFile() {

@@ -97,6 +97,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 	private final JButton btnClean;
 	private final JButton btnLaunch;
 	private final JButton btnImportOmegaMapSummary;
+	private final JButton btnImportPhiPackLogFile;
 
 	private final JXTaskPaneContainer taskPaneContainer;
 	private final JXTaskPane tpExperiment;
@@ -120,6 +121,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 		this.btnClean = new JButton("Clean Experiment");
 		this.btnLaunch = new JButton("Launch");
 		this.btnImportOmegaMapSummary = new JButton("Import omegaMap Summary");
+		this.btnImportPhiPackLogFile = new JButton("Import PhiPack Log File");
 
 		this.taskPaneContainer = new JXTaskPaneContainer();
 		this.taskPaneContainer.setBackground(ProjectView.BACKGROUND_COLOR);
@@ -313,6 +315,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 		tpExperiment.add(this.btnClean);
 		tpExperiment.add(this.btnLaunch);
 		tpExperiment.add(this.btnImportOmegaMapSummary);
+		tpExperiment.add(this.btnImportPhiPackLogFile);
 
 		this.btnProps.setAction(
 			new ExperimentAction("Edit Properties") {
@@ -453,6 +456,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 						ProjectView.this.btnCopy.setEnabled(false);
 						ProjectView.this.btnProps.setEnabled(false);
 						ProjectView.this.btnImportOmegaMapSummary.setEnabled(false);
+						ProjectView.this.btnImportPhiPackLogFile.setEnabled(false);
 
 						experimentView.launchExecution(selection == JOptionPane.YES_OPTION);
 					}
@@ -511,6 +515,49 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			}
 		);
 
+		this.btnImportPhiPackLogFile.setAction(
+			new ExperimentAction("Import PhiPack Log File") {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isEnabled() {
+					return this.hasExperiment() && !this.getExperiment().hasResult();
+				}
+
+				@Override
+				protected void actionPerformed(ActionEvent e, ProjectExperiment experiment) {
+					File destFolder = experiment.getFolder();
+					File destFile = new File(destFolder, ExperimentOutput.FILE_OUTPUT_PHIPACK_LOG);
+
+					if(destFile.exists()) {
+						final int selection = JOptionPane.showConfirmDialog(
+								ProjectView.this,
+								"A PhiPack Log File already exists. Dou you want to overwrite it?",
+								"Overwrite PhiPack Log File",
+								JOptionPane.YES_NO_OPTION
+							);
+
+						if (selection == JOptionPane.NO_OPTION) {
+							return;
+						}
+					}
+
+					final JFileChooser fc = Common.SINGLE_FILE_CHOOSER;
+
+					if (fc.showOpenDialog(ProjectView.this) == JFileChooser.APPROVE_OPTION) {
+						final File sourceFile = fc.getSelectedFile();
+						try {
+							Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+						final ExperimentView experimentView = ProjectView.this.experimentTab.get(experiment);
+						experimentView.update(experiment, new ExperimentOutput(experiment));
+					}
+				}
+			}
+		);
+
 		return tpExperiment;
 	}
 
@@ -537,6 +584,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			ProjectView.this.btnClean.setEnabled(false);
 			ProjectView.this.btnLaunch.setEnabled(false);
 			ProjectView.this.btnImportOmegaMapSummary.setEnabled(false);
+			ProjectView.this.btnImportPhiPackLogFile.setEnabled(false);
 
 			ProjectView.this.btnProps.setText("Edit Properties");
 		} else if (experiment.hasResult()) {
@@ -547,6 +595,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			ProjectView.this.btnClean.setEnabled(!experiment.isRunning());
 			ProjectView.this.btnLaunch.setEnabled(false);
 			ProjectView.this.btnImportOmegaMapSummary.setEnabled(true);
+			ProjectView.this.btnImportPhiPackLogFile.setEnabled(true);
 
 			ProjectView.this.btnProps.setText("View Properties");
 		} else {
@@ -557,6 +606,7 @@ public class ProjectView extends JPanel implements Observer, ClipboardItemView {
 			ProjectView.this.btnClean.setEnabled(!experiment.isClean());
 			ProjectView.this.btnLaunch.setEnabled(true);
 			ProjectView.this.btnImportOmegaMapSummary.setEnabled(true);
+			ProjectView.this.btnImportPhiPackLogFile.setEnabled(true);
 
 			ProjectView.this.btnProps.setText("Edit Properties");
 		}

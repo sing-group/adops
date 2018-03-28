@@ -66,6 +66,7 @@ public class ExperimentView extends JPanel implements Observer {
 	private static final String EXECUTION_LOG_TAB = "Execution Log";
 	private static final String ALIGNED_AMIN_TAB = "Aligned Amin.";
 	private static final String ALIGNED_NUCL_TAB = "Aligned Nucl.";
+	private static final String PHYPACK_LOG_FILE = "PhiPack Log File";
 
 	private static final long serialVersionUID = 1L;
 
@@ -87,6 +88,7 @@ public class ExperimentView extends JPanel implements Observer {
 	private TextFileViewer codeMLSummaryView;
 	private TextFileViewer omegaMapSummaryView;
 	private TextFileViewer outputView;
+	private TextFileViewer phiPackLogFileView;
 
 	private AlignmentTextViewer alignmentTextViewer;
 
@@ -157,6 +159,10 @@ public class ExperimentView extends JPanel implements Observer {
 		if (this.alignmentTextViewer != null) {
 			this.tabResults.remove(this.alignmentTextViewer);
 			this.alignmentTextViewer = null;
+		}
+		if (this.phiPackLogFileView != null) {
+			this.tabResults.remove(this.phiPackLogFileView);
+			this.phiPackLogFileView = null;
 		}
 	}
 
@@ -247,6 +253,7 @@ public class ExperimentView extends JPanel implements Observer {
 		final File codeMLSummaryFile = output.getCodeMLSummaryFile();
 		final File omegaMapSummaryFile = output.getOmegaMapSummaryFile();
 		final File outputFile = output.getSummaryFile();
+		final File phiPackLogFile = output.getPhyPackLogFile();
 
 		if (
 			this.logPanel == null && logFile.exists() &&
@@ -269,6 +276,11 @@ public class ExperimentView extends JPanel implements Observer {
 		if (this.alignedAminoFileView == null && alignedAminoacids.exists()) {
 			this.alignedAminoFileView = new TextFileViewer(alignedAminoacids);
 			this.tabResults.addTab(ExperimentView.ALIGNED_AMIN_TAB, alignedAminoFileView);
+		}
+
+		if (this.phiPackLogFileView == null && phiPackLogFile.exists()) {
+			this.phiPackLogFileView = new TextFileViewer(phiPackLogFile);
+			this.tabResults.addTab(ExperimentView.PHYPACK_LOG_FILE, this.phiPackLogFileView);
 		}
 
 		if (this.treeView == null && treeFile.exists()) {
