@@ -49,6 +49,8 @@ public abstract class CodeMLProcessManager extends ProcessManager {
 	static {
 		VERSION_MANAGERS = new TreeMap<>();
 
+		VERSION_MANAGERS.put("4.9e", CodeMLDefaultProcessManager.class);
+		VERSION_MANAGERS.put("4.8", CodeMLDefaultProcessManager.class);
 		VERSION_MANAGERS.put("4.7", CodeMLDefaultProcessManager.class);
 		VERSION_MANAGERS.put("4.5", CodeMLDefaultProcessManager.class);
 		VERSION_MANAGERS.put("4.4d", CodeMLDefaultProcessManager.class);

@@ -51,6 +51,7 @@ public abstract class TCoffeeProcessManager extends ProcessManager {
 	static {
 		VERSION_MANAGERS = new TreeMap<>();
 
+		VERSION_MANAGERS.put("10.00.r1614", TCoffeeDefaultProcessManager.class);
 		VERSION_MANAGERS.put("10.00.r1613", TCoffeeDefaultProcessManager.class);
 		VERSION_MANAGERS.put("9.02.r1228", TCoffeeDefaultProcessManager.class);
 	}
