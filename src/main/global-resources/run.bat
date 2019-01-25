@@ -1,6 +1,6 @@
 @REM ADOPS
 @REM %%
-@REM Copyright (C) 2012 - 2017 David Reboiro-Jato, Miguel Reboiro-Jato, Jorge Vieira, Florentino Fdez-Riverola, Cristina P. Vieira, Nuno A. Fonseca
+@REM Copyright (C) 2012 - 2019 David Reboiro-Jato, Miguel Reboiro-Jato, Jorge Vieira, Florentino Fdez-Riverola, Cristina P. Vieira, Nuno A. Fonseca
 @REM %%
 @REM This program is free software: you can redistribute it and/or modify
 @REM it under the terms of the GNU General Public License as
