@@ -269,12 +269,12 @@ public class ExperimentView extends JPanel implements Observer {
 		}
 
 		if (this.alignedNuclFileView == null && alignedNucleotides.exists()) {
-			this.alignedNuclFileView = new TextFileViewer(alignedNucleotides);
+			this.alignedNuclFileView = new TextFileViewer(alignedNucleotides, true, true);
 			this.tabResults.addTab(ExperimentView.ALIGNED_NUCL_TAB, alignedNuclFileView);
 		}
 
 		if (this.alignedAminoFileView == null && alignedAminoacids.exists()) {
-			this.alignedAminoFileView = new TextFileViewer(alignedAminoacids);
+			this.alignedAminoFileView = new TextFileViewer(alignedAminoacids, true, false);
 			this.tabResults.addTab(ExperimentView.ALIGNED_AMIN_TAB, alignedAminoFileView);
 		}
 

@@ -21,7 +21,7 @@
  */
 package es.uvigo.ei.sing.adops.views;
 
-import static es.uvigo.ei.sing.adops.util.FastaUtils.loadAndCheckSequences;
+import static es.uvigo.ei.sing.adops.util.FastaUtils.loadSequences;
 import static es.uvigo.ei.sing.adops.util.FastaUtils.writeSequences;
 
 import java.awt.BorderLayout;
@@ -68,16 +68,18 @@ public class ExportDialog extends JDialog {
 	private SingleListSelectionPanel<FastaSequenceWrapper> panelSingleSequence;
 	private DoubleListSelectionPanel<FastaSequenceWrapper> panelPositiveNegative;
 	private JTabbedPane panelSequenceSelection;
+  private boolean checkSequencesAreMultipleOfThree;
 
-	public ExportDialog(File file) throws IOException {
+  public ExportDialog(File file, boolean checkSequencesAreMultipleOfThree) throws IOException {
 		super(Workbench.getInstance().getMainFrame(), "Export File", true);
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-		if (!FastaUtils.isFasta(file)) {
+		if (!FastaUtils.isFasta(file, checkSequencesAreMultipleOfThree)) {
 			throw new IllegalArgumentException(file.getAbsolutePath() + " is not a valid Fasta file");
 		}
 
-		this.file = file;
+    this.checkSequencesAreMultipleOfThree = checkSequencesAreMultipleOfThree;
+    this.file = file;
 
 		final JPanel panelMain = new JPanel(new BorderLayout(0, 10));
 
@@ -137,7 +139,7 @@ public class ExportDialog extends JDialog {
 						}
 
 						final File exportFile = new File(exportDirectory, exportName);
-						final Fasta fasta = loadAndCheckSequences(this.file, this.getSelectedValuesId());
+						final Fasta fasta = loadSequences(this.file, this.checkSequencesAreMultipleOfThree, this.getSelectedValuesId());
 						
 						writeSequences(exportFile, fasta);
 					} else {
@@ -148,14 +150,10 @@ public class ExportDialog extends JDialog {
 						final File positiveExportFile = new File(exportDirectory, exportName + ".pos" + suffix);
 						final File negativeExportFile = new File(exportDirectory, exportName + ".neg" + suffix);
 
-						final Fasta positiveFasta = loadAndCheckSequences(
-							this.file,
-							this.getPositiveValuesId()
-						);
-						final Fasta negativeFasta = loadAndCheckSequences(
-							this.file,
-							this.getNegativeValuesId()
-						);
+            final Fasta positiveFasta =
+              loadSequences(this.file, this.checkSequencesAreMultipleOfThree, this.getPositiveValuesId());
+            final Fasta negativeFasta =
+              loadSequences(this.file, this.checkSequencesAreMultipleOfThree, this.getNegativeValuesId());
 
 						writeSequences(positiveExportFile, positiveFasta);
 						writeSequences(negativeExportFile, negativeFasta);
@@ -298,7 +296,7 @@ public class ExportDialog extends JDialog {
 	}
 
 	protected List<FastaSequenceWrapper> loadAndWrapSequences() {
-		final Fasta fastaSeqList = loadAndCheckSequences(this.file);
+		final Fasta fastaSeqList = loadSequences(this.file, this.checkSequencesAreMultipleOfThree);
 
 		final List<FastaSequenceWrapper> fastaSeqWrappedList = new ArrayList<>(fastaSeqList.size());
 		for (FastaSequence sequence : fastaSeqList.getSequences()) {
@@ -400,22 +398,22 @@ public class ExportDialog extends JDialog {
 		panel.add(btnCancel);
 
 		return panel;
-	}
+  }
 
-	private static class FastaSequenceWrapper {
-		private final FastaSequence sequence;
+  private static class FastaSequenceWrapper {
+    private final FastaSequence sequence;
 
-		public FastaSequenceWrapper(FastaSequence sequence) {
-			this.sequence = sequence;
-		}
+    public FastaSequenceWrapper(FastaSequence sequence) {
+      this.sequence = sequence;
+    }
 
-		public String getId() {
-			return sequence.getId();
-		}
-		
-		@Override
-		public String toString() {
-			return sequence.getIdAndDescription();
-		}
-	}
+    public String getId() {
+      return sequence.getId();
+    }
+
+    @Override
+    public String toString() {
+      return sequence.getIdAndDescription();
+    }
+  }
 }

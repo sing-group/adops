@@ -21,6 +21,7 @@
  */
 package es.uvigo.ei.sing.adops.util;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.BufferedReader;
@@ -37,10 +38,10 @@ import es.uvigo.ei.sing.adops.datatypes.fasta.Fasta;
 import es.uvigo.ei.sing.adops.datatypes.fasta.FastaSequence;
 
 public class FastaUtils {
-	public static boolean isFasta(File file) {
+	public static boolean isFasta(File file, boolean checkSequencesAreMultipleOfThree) {
 		if (file.getName().toLowerCase().endsWith("fasta")) {
 			try {
-				loadAndCheckSequences(file);
+        loadSequences(file, checkSequencesAreMultipleOfThree);
 				return true;
 			} catch (Exception e) {
 				return false;
@@ -67,30 +68,35 @@ public class FastaUtils {
 			Files.write(fastaFile.toPath(), lines);
 	}
 	
-	public static Fasta loadAndCheckSequences(File fastaFile, List<String> selectedIds) {
-		final Fasta fasta = loadAndCheckSequences(fastaFile);
-		
-		final List<FastaSequence> sequences = fasta.getSequences().stream()
-			.filter(sequence -> selectedIds.contains(sequence.getId()))
-		.collect(toList());
-		
-		return new Fasta(sequences);
-	}
-	
-	public static Fasta loadAndCheckSequences(File fastaFile)
-	throws IllegalArgumentException {
-		return loadSequences(fastaFile, true);
-	}
-	
-	public static Fasta loadSequences(File fastaFile, boolean check)
-	throws IllegalArgumentException {
+  public static Fasta loadAndCheckSequences(File fastaFile, List<String> selectedIds) {
+    final Fasta fasta = loadAndCheckSequences(fastaFile);
+
+    final List<FastaSequence> sequences =
+      fasta.getSequences().stream()
+        .filter(sequence -> selectedIds.contains(sequence.getId()))
+        .collect(toList());
+
+    return new Fasta(sequences);
+  }
+
+  public static Fasta loadAndCheckSequences(File fastaFile)
+    throws IllegalArgumentException {
+    return loadSequences(fastaFile, true);
+  }
+
+  public static Fasta loadSequences(File fastaFile, boolean checkSequencesAreMultipleOfThree) {
+    return loadSequences(fastaFile, checkSequencesAreMultipleOfThree, emptyList());
+  }
+
+  public static Fasta loadSequences(File fastaFile, boolean checkSequencesAreMultipleOfThree, List<String> selectedIds)
+    throws IllegalArgumentException {
 		final List<FastaSequence> sequences = new ArrayList<>();
 		
 		try (BufferedReader br = new BufferedReader(new FileReader(fastaFile))) {
 			String line = null;
 			
 			// Ignores lines until first sequence
-			while ((line = br.readLine()) != null && !line.startsWith(">"));
+      while ((line = br.readLine()) != null && !line.startsWith(">"));
 
 			String sequenceName = line.substring(1);
 			String sequence = "";
@@ -100,13 +106,15 @@ public class FastaUtils {
 				if (line == null || line.startsWith(">")) {
 					if (sequence.isEmpty()) {
 						throw new IllegalArgumentException("Empty sequence: " + sequenceName);
-					} else if (check) {
+					} else if (checkSequencesAreMultipleOfThree) {
 						if (sequence.length() % 3 != 0) {
 							throw new IllegalArgumentException("Sequence length must be multiple of 3: " + sequenceName);
 						}
 					}
 
-					sequences.add(new FastaSequence(sequenceName, sequence));
+          if (selectedIds.isEmpty() || selectedIds.contains(sequenceName)) {
+					  sequences.add(new FastaSequence(sequenceName, sequence));
+					}
 					
 					if (line == null) {
 						break;

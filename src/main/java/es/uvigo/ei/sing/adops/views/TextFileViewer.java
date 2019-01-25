@@ -55,7 +55,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import es.uvigo.ei.aibench.workbench.Workbench;
-import es.uvigo.ei.sing.adops.util.FastaUtils;
 import say.swing.JFontChooser;
 
 public class TextFileViewer extends JPanel {
@@ -69,11 +68,15 @@ public class TextFileViewer extends JPanel {
 	private final Highlighter.HighlightPainter highlightPatiner;
 	private final JFontChooser fontChooser;
 
-	private final File file;
-	private boolean wasModified = false;
+  private final File file;
+  private boolean wasModified = false;
 
-	public TextFileViewer(final File file) {
-		super(new BorderLayout());
+  public TextFileViewer(final File file) {
+    this(file, false, false);
+  }
+
+  public TextFileViewer(final File file, boolean isFasta, boolean checkSequencesAreMultipleOfThree) {
+    super(new BorderLayout());
 
 		this.file = file;
 
@@ -115,7 +118,7 @@ public class TextFileViewer extends JPanel {
 		panelOptionsWest.add(btnSearch);
 		panelOptionsWest.add(btnClear);
 
-		if (FastaUtils.isFasta(file)) {
+		if (isFasta) {
 			panelOptionsWest.add(new JSeparator());
 
 			final JButton btnExport = new JButton("Export...");
@@ -127,7 +130,7 @@ public class TextFileViewer extends JPanel {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						try {
-							new ExportDialog(file).setVisible(true);
+							new ExportDialog(file, checkSequencesAreMultipleOfThree).setVisible(true);
 						} catch (Exception e1) {
 							JOptionPane.showMessageDialog(
 								Workbench.getInstance().getMainFrame(),
