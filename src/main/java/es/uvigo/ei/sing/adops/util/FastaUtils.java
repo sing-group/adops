@@ -43,7 +43,6 @@ public class FastaUtils {
 				loadAndCheckSequences(file);
 				return true;
 			} catch (Exception e) {
-				e.printStackTrace();
 				return false;
 			}
 		} else {
